@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useAuthStore } from '@/lib/authStore';
-import { Layout, FolderOpen, Settings, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Layout, FolderOpen, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const sidebarItems = [
   { href: '/builder/templates', label: 'Templates', icon: Layout },
@@ -14,16 +14,10 @@ const sidebarItems = [
 
 const Sidebar = () => {
   const pathname = usePathname();
-  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const { logout, isAuthenticated } = useAuthStore();
+  const { hasPro } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
-  if (!isAuthenticated) return null;
+  if (!hasPro) return null;
 
   return (
     <aside 
@@ -63,21 +57,6 @@ const Sidebar = () => {
             );
           })}
         </div>
-
-        <div className="py-3 px-2 border-t border-gray-200 dark:border-gray-800">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2.5 px-2.5 py-2 rounded-md w-full text-gray-500 dark:text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-          >
-            <LogOut className="w-4 h-4 shrink-0" />
-            {!collapsed && (
-              <span className="text-sm font-medium">
-                Logout
-              </span>
-            )}
-          </button>
-        </div>
-
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="absolute -right-2.5 top-20 w-5 h-5 rounded-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"

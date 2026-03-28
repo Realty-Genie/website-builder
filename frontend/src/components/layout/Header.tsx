@@ -1,32 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/authStore';
-import { api } from '@/lib/api';
-import { LogOut, Menu, X, Sun, Moon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
-import { useTheme } from '@/lib/ThemeProvider';
 import { Setting06Icon } from 'hugeicons-react';
+import { useTheme } from '@/lib/ThemeProvider';
+import { useAuthStore } from '@/lib/authStore';
 
 const Header = () => {
-  const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, hasPro } = useAuthStore();
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      await api.auth.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    logout();
-    router.push('/login');
+  const navigateToSettings = () => {
+    router.push('/settings');
   };
 
-  if (!isAuthenticated) {
+  if (!hasPro) {
     return (
       <header className="fixed top-0 left-0 right-0 h-14 bg-[#141416] border-b border-[#2A2A2E] z-40">
         <div className="h-full px-4 flex items-center justify-between max-w-8xl mx-auto">
@@ -36,32 +28,14 @@ const Header = () => {
               alt="Site Logo"
               width={30}
               height={30}
-              className='rounded-lg shadow-inner'
+              className="rounded-lg shadow-inner"
             />
           </Link>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/login"
-              className="px-3 py-1.5 rounded-md text-sm text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F] transition-colors"
-            >
-              Login
-            </Link>
-            <Link
-              href="/register"
-              className="px-3 py-1.5 rounded-md text-sm bg-linear-to-r from-[#6366F1] to-[#8B5CF6] text-white font-medium hover:opacity-90 transition-opacity"
-            >
-              Sign Up
-            </Link>
-          </div>
+          <span className="text-sm text-[#A1A1AA]">CRM-authenticated Pro access</span>
         </div>
       </header>
     );
   }
-
-  const navigateToSettings = () => {
-    router.push('/settings');
-  };
 
   return (
     <>
@@ -80,7 +54,7 @@ const Header = () => {
               alt="Site Logo"
               width={30}
               height={30}
-              className='rounded-lg shadow-inner'
+              className="rounded-lg shadow-inner"
             />
           </Link>
 
@@ -89,7 +63,9 @@ const Header = () => {
               onClick={navigateToSettings}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F] transition-colors"
             >
-              <span className="hidden md:inline"><Setting06Icon className="w-4 h-4" /></span>
+              <span className="hidden md:inline">
+                <Setting06Icon className="w-4 h-4" />
+              </span>
             </button>
             <button
               onClick={toggleTheme}
@@ -98,19 +74,13 @@ const Header = () => {
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
-            <span className="hidden sm:block text-sm text-[#A1A1AA]">{user?.email}</span>
-            <button
-              onClick={handleLogout}
-              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-md text-sm text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F] transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden md:inline">Logout</span>
-            </button>
+            <span className="hidden sm:block text-sm text-[#A1A1AA]">
+              {user?.email || user?.name || 'CRM User'}
+            </span>
           </div>
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
@@ -151,16 +121,9 @@ const Header = () => {
               </Link>
             </nav>
             <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#2A2A2E]">
-              <button
-                onClick={() => {
-                  handleLogout();
-                  setMobileMenuOpen(false);
-                }}
-                className="flex items-center gap-2 px-3 py-2 rounded-md w-full text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F]"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
+              <div className="px-3 py-2 text-sm text-[#A1A1AA]">
+                {user?.email || user?.name || 'CRM User'}
+              </div>
             </div>
           </div>
         </div>

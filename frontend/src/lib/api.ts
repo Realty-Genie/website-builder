@@ -1,10 +1,117 @@
 import { useAuthStore } from './authStore';
 
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const headers = {
-    'Content-Type': 'application/json',
-    ...options.headers,
+async function parseJson(response: Response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getNestedRecord(source: Record<string, unknown>, key: string) {
+  const value = source[key];
+  return isRecord(value) ? value : null;
+}
+
+function normalizeAuthUser(data: unknown) {
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  const directUser = getNestedRecord(data, 'user');
+  const nestedData = getNestedRecord(data, 'data');
+  const nestedUser = nestedData ? getNestedRecord(nestedData, 'user') : null;
+  const rawUser = directUser ?? nestedUser ?? data;
+  const id = rawUser._id ?? rawUser.id ?? data.userId ?? data.id;
+
+  if (typeof id !== 'string' || !id) {
+    return null;
+  }
+
+  const firstName = typeof rawUser.firstName === 'string' ? rawUser.firstName : undefined;
+  const lastName = typeof rawUser.lastName === 'string' ? rawUser.lastName : undefined;
+  const fullName = typeof rawUser.name === 'string'
+    ? rawUser.name
+    : [firstName, lastName].filter(Boolean).join(' ') || undefined;
+
+  const subscription = isRecord(rawUser.subscription) ? rawUser.subscription : null;
+  const planNameSource = subscription?.planName ?? rawUser.planName ?? data.planName;
+  const subscriptionPlan = typeof planNameSource === 'string' ? planNameSource : undefined;
+
+  return {
+    id,
+    email: typeof rawUser.email === 'string' ? rawUser.email : undefined,
+    name: fullName,
+    firstName,
+    lastName,
+    role: typeof rawUser.role === 'string' ? rawUser.role : undefined,
+    businessName: typeof rawUser.businessName === 'string' ? rawUser.businessName : undefined,
+    avatarUrl: typeof rawUser.avatarUrl === 'string' ? rawUser.avatarUrl : undefined,
+    onboardingComplete:
+      typeof rawUser.onboardingComplete === 'boolean' ? rawUser.onboardingComplete : undefined,
+    subscriptionPlan,
+    isSubscribed:
+      typeof rawUser.isSubscribed === 'boolean'
+        ? rawUser.isSubscribed
+        : subscriptionPlan
+          ? subscriptionPlan.toLowerCase() !== 'free'
+          : true,
   };
+}
+
+function getAccessToken() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const storedToken = window.localStorage.getItem('accessToken')?.trim();
+  if (storedToken) {
+    return storedToken;
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const hash = window.location.hash.startsWith('#')
+    ? window.location.hash.slice(1)
+    : window.location.hash;
+  const hashParams = new URLSearchParams(hash);
+  const keys = ['accessToken', 'access_token', 'token'];
+
+  for (const key of keys) {
+    const value = searchParams.get(key)?.trim() || hashParams.get(key)?.trim();
+    if (value) {
+      window.localStorage.setItem('accessToken', value);
+      return value;
+    }
+  }
+
+  return null;
+}
+
+function getBackendUrl() {
+  return process.env.BACKEND_URL?.replace(/\/$/, '') || '';
+}
+
+function getAuthorizationHeaders(headers?: HeadersInit) {
+  const authHeaders = new Headers(headers);
+  const accessToken = getAccessToken();
+
+  if (accessToken) {
+    authHeaders.set('authorization', `Bearer ${accessToken}`);
+  }
+
+  return authHeaders;
+}
+
+async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  const headers = getAuthorizationHeaders(options.headers);
+
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
 
   const response = await fetch(`/api${url}`, {
     ...options,
@@ -12,18 +119,22 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     credentials: 'include',
   });
 
+  const data = await parseJson(response);
+
   if (response.status === 401) {
-    useAuthStore.getState().logout();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-    throw new Error('Unauthorized');
+    useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
+    throw new Error(data?.error || 'Unauthorized');
   }
 
-  const data = await response.json();
+  if (response.status === 403) {
+    useAuthStore.getState().setForbidden(
+      data?.error || 'A Pro subscription is required to use this app.'
+    );
+    throw new Error(data?.error || 'Forbidden');
+  }
 
   if (!response.ok) {
-    throw new Error(data.error || 'Something went wrong');
+    throw new Error(data?.error || 'Something went wrong');
   }
 
   return data;
@@ -31,29 +142,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 export const api = {
   auth: {
-    register: (email: string, password: string) =>
-      fetchWithAuth('/auth?action=register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }),
-
-    login: (email: string, password: string) =>
-      fetchWithAuth('/auth?action=login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      }),
-
-    logout: () =>
-      fetchWithAuth('/auth?action=logout', {
-        method: 'POST',
-      }),
-
     me: () => fetchWithAuth('/auth?action=me'),
-
-    refresh: () =>
-      fetchWithAuth('/auth?action=refresh', {
-        method: 'POST',
-      }),
   },
 
   templates: {
@@ -64,7 +153,12 @@ export const api = {
   sites: {
     list: () => fetchWithAuth('/sites'),
     get: (id: string) => fetchWithAuth(`/sites?id=${id}`),
-    create: async (templateId: string, siteName: string, details: Record<string, string>, imageFile?: File) => {
+    create: async (
+      templateId: string,
+      siteName: string,
+      details: Record<string, string>,
+      imageFile?: File
+    ) => {
       const formData = new FormData();
       formData.append('templateId', templateId);
       formData.append('siteName', siteName);
@@ -76,13 +170,24 @@ export const api = {
       const response = await fetch('/api/sites', {
         method: 'POST',
         body: formData,
+        headers: getAuthorizationHeaders(),
         credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await parseJson(response);
+
+      if (response.status === 401) {
+        useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
+      }
+
+      if (response.status === 403) {
+        useAuthStore.getState().setForbidden(
+          data?.error || 'A Pro subscription is required to use this app.'
+        );
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create site');
+        throw new Error(data?.error || 'Failed to create site');
       }
 
       return data;
@@ -99,13 +204,24 @@ export const api = {
       const response = await fetch(`/api/sites?id=${siteId}`, {
         method: 'PUT',
         body: formData,
+        headers: getAuthorizationHeaders(),
         credentials: 'include',
       });
 
-      const data = await response.json();
+      const data = await parseJson(response);
+
+      if (response.status === 401) {
+        useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
+      }
+
+      if (response.status === 403) {
+        useAuthStore.getState().setForbidden(
+          data?.error || 'A Pro subscription is required to use this app.'
+        );
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to update site');
+        throw new Error(data?.error || 'Failed to update site');
       }
 
       return data;
@@ -116,20 +232,45 @@ export const api = {
 
 export async function checkAuth() {
   try {
-    const response = await fetch('/api/auth?action=me', { credentials: 'include' });
-    if (!response.ok) {
-      useAuthStore.getState().logout();
+    const headers = getAuthorizationHeaders({
+      Accept: 'application/json',
+    });
+
+    const response = await fetch(`${getBackendUrl()}/user/me/pro`, {
+      headers,
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    const data = await parseJson(response);
+
+    if (response.status === 401) {
+      useAuthStore.getState().clearSession();
       return false;
     }
-    const data = await response.json();
-    if (data.success && data.user) {
-      useAuthStore.getState().setUser(data.user);
-      return true;
+
+    if (response.status === 403) {
+      useAuthStore.getState().setForbidden(
+        data?.error || 'A Pro subscription is required to use this app.'
+      );
+      return false;
     }
-    useAuthStore.getState().logout();
-    return false;
-  } catch (error) {
-    useAuthStore.getState().logout();
+
+    if (!response.ok) {
+      useAuthStore.getState().clearSession(data?.error || 'Unable to verify CRM access.');
+      return false;
+    }
+
+    const user = normalizeAuthUser(data);
+
+    if (!user) {
+      useAuthStore.getState().clearSession('CRM user data is missing from /user/me/pro response.');
+      return false;
+    }
+
+    useAuthStore.getState().setAuthenticatedUser(user);
+    return true;
+  } catch {
+    useAuthStore.getState().clearSession('Unable to reach the CRM authentication service.');
     return false;
   }
 }

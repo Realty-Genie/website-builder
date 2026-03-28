@@ -7,20 +7,19 @@ import AppLayout from '@/components/layout/AppLayout';
 import DetailsForm from '@/components/builder/DetailsForm';
 import { templates } from '@/data/templates';
 import { api } from '@/lib/api';
-import { Site } from '@/types';
+import type { Site, Template } from '@/types';
 import { Loader2 } from 'lucide-react';
 
 export default function EditPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated } = useAuthStore();
-  const [template, setTemplate] = useState<any>(null);
+  const { hasPro } = useAuthStore();
+  const [template, setTemplate] = useState<Template | null>(null);
   const [siteData, setSiteData] = useState<Site | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
+    if (!hasPro) {
       return;
     }
 
@@ -52,9 +51,9 @@ export default function EditPage() {
     };
 
     fetchData();
-  }, [isAuthenticated, params.siteId, router]);
+  }, [hasPro, params.siteId, router]);
 
-  if (!isAuthenticated || loading || !template) {
+  if (!hasPro || loading || !template) {
     return (
       <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-[#6366F1] animate-spin" />

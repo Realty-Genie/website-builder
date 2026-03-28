@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/layout/AppLayout';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
@@ -31,18 +30,16 @@ interface Site {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { hasPro } = useAuthStore();
   const [sites, setSites] = useState<Site[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
+    if (!hasPro) {
       return;
     }
     fetchSites();
-  }, [isAuthenticated]);
+  }, [hasPro]);
 
   useEffect(() => {
     const hasBuilding = sites.some(s => s.status === 'building');
@@ -80,10 +77,7 @@ export default function DashboardPage() {
       return;
     }
     try {
-      await fetch(`/api/sites?id=${siteId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      await api.sites.delete(siteId);
       fetchSites();
     } catch (error) {
       console.error('Failed to delete:', error);

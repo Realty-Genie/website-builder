@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware } from '@/lib/server/auth';
+import { getCrmAuth } from '@/lib/server/auth';
 import { getSitesCollection } from '@/lib/server/mongodb';
 import { getTemplateById } from '@/lib/server/templates';
 import { deployToGitHub } from '@/lib/server/githubDeploy';
-import { ObjectId } from 'mongodb';
+import type { Site } from '@/types';
+
+type SiteRecord = Omit<Site, 'liveUrl'> & {
+  liveUrl: string | null;
+};
+
+function getErrorDetails(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Unknown error';
+}
 
 function generateId() {
   return `site_${Math.random().toString(36).substring(2, 11)}`;
@@ -17,7 +29,7 @@ async function waitForSiteLive(url: string, maxAttempts = 30, intervalMs = 5000)
         console.log(`Site is live! Attempt ${attempt}/${maxAttempts}`);
         return true;
       }
-    } catch (err) {
+    } catch {
       console.log(`Attempt ${attempt}/${maxAttempts}: Site not ready yet...`);
     }
     if (attempt < maxAttempts) {
@@ -29,10 +41,11 @@ async function waitForSiteLive(url: string, maxAttempts = 30, intervalMs = 5000)
 }
 
 export async function GET(request: NextRequest) {
-  const userId = authMiddleware(request);
-  if (!userId) {
-    return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  const auth = await getCrmAuth(request);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
   }
+  const userId = auth.user.id;
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
@@ -100,13 +113,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, site: { ...site, id: site.siteId } });
     }
 
-    const sites = await sitesCollection.find({ userId }).sort({ createdAt: -1 }).toArray();
+      const sites = await sitesCollection.find<SiteRecord>({ userId }).sort({ createdAt: -1 }).toArray();
     return NextResponse.json({
       success: true,
-      sites: sites.map((site: any) => ({
+      sites: sites.map((site) => ({
         id: site.siteId,
         templateName: site.templateName,
-        siteName: site.details?.companyName || site.siteName,
+        siteName: site.details.companyName || site.siteName,
         status: site.status,
         liveUrl: site.liveUrl,
         createdAt: site.createdAt,
@@ -119,17 +132,18 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const userId = authMiddleware(request);
-  if (!userId) {
-    return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  const auth = await getCrmAuth(request);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
   }
+  const userId = auth.user.id;
 
   try {
     const formData = await request.formData();
     const templateId = formData.get('templateId') as string;
     const siteName = formData.get('siteName') as string;
     const detailsStr = formData.get('details') as string;
-    const details = detailsStr ? JSON.parse(detailsStr) : {};
+    const details = detailsStr ? JSON.parse(detailsStr) as Record<string, string> : {};
 
     const template = getTemplateById(templateId);
     if (!template) {
@@ -163,7 +177,7 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    await sitesCollection.insertOne(newSite as any);
+    await sitesCollection.insertOne(newSite);
 
     const deployResult = await deployToGitHub(
       userId,
@@ -202,17 +216,21 @@ export async function POST(request: NextRequest) {
       liveUrl,
       error: deployResult.success ? undefined : deployResult.error,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating site:', error);
-    return NextResponse.json({ success: false, error: 'Failed to create site', details: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to create site', details: getErrorDetails(error) },
+      { status: 500 }
+    );
   }
 }
 
 export async function PUT(request: NextRequest) {
-  const userId = authMiddleware(request);
-  if (!userId) {
-    return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  const auth = await getCrmAuth(request);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
   }
+  const userId = auth.user.id;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -224,7 +242,7 @@ export async function PUT(request: NextRequest) {
 
     const formData = await request.formData();
     const detailsStr = formData.get('details') as string;
-    const details = detailsStr ? JSON.parse(detailsStr) : {};
+    const details = detailsStr ? JSON.parse(detailsStr) as Record<string, string> : {};
 
     const agentPhotoFile = formData.get('agentPhoto') as File | null;
     let imageBuffer: Buffer | null = null;
@@ -282,17 +300,18 @@ export async function PUT(request: NextRequest) {
     );
 
     return NextResponse.json({ success: true, status: finalStatus, liveUrl });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating site:', error);
     return NextResponse.json({ success: false, error: 'Failed to update site' }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest) {
-  const userId = authMiddleware(request);
-  if (!userId) {
-    return NextResponse.json({ success: false, error: 'Not authenticated' }, { status: 401 });
+  const auth = await getCrmAuth(request);
+  if (!auth.ok) {
+    return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
   }
+  const userId = auth.user.id;
 
   try {
     const { searchParams } = new URL(request.url);

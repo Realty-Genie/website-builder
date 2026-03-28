@@ -18,6 +18,10 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     success: true,
-    templates: templates.map(({ formSchema, ...template }) => template),
+    templates: templates.map((template) => {
+      const { formSchema, ...templateWithoutSchema } = template;
+      void formSchema;
+      return templateWithoutSchema;
+    }),
   });
 }

@@ -1,10 +1,15 @@
+'use client';
+
 import AppLayout from '@/components/layout/AppLayout';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
-import { User, Bell, Shield } from '@/components/ui/Button';
+import { User, Bell } from '@/components/ui/Button';
+import { useAuthStore } from '@/lib/authStore';
 
 export default function SettingsPage() {
+  const { user } = useAuthStore();
+
   return (
     <AppLayout>
       <div className="max-w-2xl mx-auto space-y-6">
@@ -25,8 +30,17 @@ export default function SettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input label="Full Name" placeholder="John Doe" defaultValue="User" />
-            <Input label="Email" type="email" placeholder="hello@example.com" defaultValue="user@example.com" />
+            <Input
+              label="Full Name"
+              placeholder="John Doe"
+              defaultValue={user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(' ')}
+            />
+            <Input
+              label="Email"
+              type="email"
+              placeholder="hello@example.com"
+              defaultValue={user?.email}
+            />
           </div>
 
           <Button className="w-full sm:w-auto">Save Changes</Button>

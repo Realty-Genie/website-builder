@@ -1,26 +1,47 @@
 import { create } from 'zustand';
-
-interface User {
-  id: string;
-  email: string;
-}
+import type { AuthUser } from './server/auth';
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
+  hasPro: boolean;
   isLoading: boolean;
-  setUser: (user: User | null) => void;
+  authError: string | null;
+  setAuthenticatedUser: (user: AuthUser) => void;
+  setForbidden: (message: string) => void;
+  clearSession: (message?: string) => void;
   setLoading: (loading: boolean) => void;
-  logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  (set) => ({
-    user: null,
-    isAuthenticated: false,
-    isLoading: true,
-    setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false }),
-    setLoading: (isLoading) => set({ isLoading }),
-    logout: () => set({ user: null, isAuthenticated: false, isLoading: false }),
-  })
-);
+export const useAuthStore = create<AuthState>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  hasPro: false,
+  isLoading: true,
+  authError: null,
+  setAuthenticatedUser: (user) =>
+    set({
+      user,
+      isAuthenticated: true,
+      hasPro: true,
+      isLoading: false,
+      authError: null,
+    }),
+  setForbidden: (authError) =>
+    set({
+      user: null,
+      isAuthenticated: true,
+      hasPro: false,
+      isLoading: false,
+      authError,
+    }),
+  clearSession: (authError = null) =>
+    set({
+      user: null,
+      isAuthenticated: false,
+      hasPro: false,
+      isLoading: false,
+      authError,
+    }),
+  setLoading: (isLoading) => set({ isLoading }),
+}));
