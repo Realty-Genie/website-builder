@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { getCrmAuth } from '@/lib/server/auth';
 import { getSitesCollection } from '@/lib/server/mongodb';
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
       const sites = await sitesCollection.find<SiteRecord>({ userId }).sort({ createdAt: -1 }).toArray();
     return NextResponse.json({
       success: true,
-      sites: sites.map((site) => ({
+      sites: sites.map((site: any) => ({
         id: site.siteId,
         templateName: site.templateName,
         siteName: site.details.companyName || site.siteName,
