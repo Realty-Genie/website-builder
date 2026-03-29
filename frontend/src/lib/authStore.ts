@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
       hasPro: false,
       isLoading: false,
       authError,
-    }),
-  clearSession: (authError = null) =>
+    }), 
+  clearSession: (authError?: string | null) => // this can be an issue !!!!!!!!!!!!!!!!!!!!!!!!
     set({
       user: null,
       isAuthenticated: false,

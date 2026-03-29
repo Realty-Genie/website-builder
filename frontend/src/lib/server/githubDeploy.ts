@@ -73,10 +73,6 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     about = 'With a passion for real estate and a deep understanding of the local market, I\'m dedicated to making your home buying or selling experience exceptional.',
   } = details;
 
-  const goldColor = '#C9A96E';
-
-  const heroPhotoUrl = heroImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80&auto=format';
-
   const provinceName: Record<string, string> = {
     ON: 'Ontario', BC: 'British Columbia', AB: 'Alberta', QC: 'Quebec',
     MB: 'Manitoba', SK: 'Saskatchewan', NS: 'Nova Scotia', NB: 'New Brunswick',
@@ -102,7 +98,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
   ];
 
   const neighborhoodImages = [
-    'https://images.unsplash.com/photo-1559517282-523965c5a9c9?w=600&q=80&auto=format',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80&auto=format',
     'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&q=80&auto=format',
     'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&q=80&auto=format',
     'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=600&q=80&auto=format',
@@ -124,6 +120,9 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     { name: review2Name, text: review2Text, type: review2Type },
     { name: review3Name, text: review3Text, type: review3Type },
   ];
+
+  const goldColor = '#C9A96E';
+  const heroPhotoUrl = heroImage || 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1600&q=80&auto=format';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -165,29 +164,58 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     nav { display: flex; align-items: center; gap: 28px; }
     nav a { font-size: 14px; font-weight: 500; color: var(--gray-500); transition: color 0.2s; letter-spacing: 0.2px; }
     nav a:hover { color: var(--gray-900); }
-    .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .header-phone { font-size: 14px; font-weight: 500; color: var(--gray-700); }
     .btn-talk { background: var(--dark); color: var(--white); padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; transition: all 0.25s; white-space: nowrap; }
     .btn-talk:hover { background: var(--gold); color: var(--dark); }
+    .hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 40px; height: 40px; background: var(--gray-100); border: none; border-radius: 8px; cursor: pointer; padding: 8px; transition: all 0.2s; }
+    .hamburger:hover { background: var(--gray-200); }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--gray-900); border-radius: 2px; transition: all 0.3s ease; }
+    .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.active span:nth-child(2) { opacity: 0; transform: scale(0); }
+    .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display: none; position: fixed; top: 65px; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 20px; flex-direction: column; gap: 16px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .mobile-menu.active { display: flex; }
+    .mobile-menu a { font-size: 15px; font-weight: 500; color: var(--gray-700); padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-quick-connect { background: var(--gold); color: var(--dark); border: none; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+    .mobile-quick-connect:hover { background: var(--gray-900); color: var(--white); }
+    @media (max-width: 768px) { .mobile-menu { top: 61px; } }
     .hero { position: relative; min-height: 100vh; display: flex; align-items: center; background: var(--dark); overflow: hidden; padding-top: 80px; }
     .hero-bg { position: absolute; inset: 0; background-image: url('${heroPhotoUrl}'); background-size: cover; background-position: center; opacity: 0.18; }
     .hero-overlay { position: absolute; inset: 0; background: linear-gradient(105deg, var(--dark) 45%, transparent 100%); }
     .hero-inner { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 420px; gap: 60px; align-items: center; padding: 80px 0 60px; }
-    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-light); border: 1px solid var(--gold-mid); color: var(--gold); padding: 7px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 28px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--gold-light); border: 1px solid var(--gold-mid); color: var(--gold); padding: 7px 16px; border-radius: 50px; font-size: 12px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; margin-bottom: 28px; animation: fadeSlideUp 0.8s ease forwards; opacity: 0; transform: translateY(20px); }
     .hero-badge::before { content: ''; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
-    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(38px, 4.5vw, 60px); font-weight: 700; color: var(--white); line-height: 1.12; letter-spacing: -1px; margin-bottom: 22px; }
+    @keyframes fadeSlideUp { to { opacity: 1; transform: translateY(0); } }
+    .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(38px, 4.5vw, 60px); font-weight: 700; color: var(--white); line-height: 1.12; letter-spacing: -1px; margin-bottom: 22px; animation: fadeSlideUp 0.8s ease 0.1s forwards; opacity: 0; transform: translateY(20px); }
     .hero h1 em { font-style: italic; color: var(--gold); }
-    .hero-desc { font-size: 17px; color: rgba(255,255,255,0.65); max-width: 520px; margin-bottom: 40px; line-height: 1.7; }
-    .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 56px; }
-    .btn-primary-hero { background: var(--gold); color: var(--dark); padding: 16px 32px; border-radius: 7px; font-size: 15px; font-weight: 600; letter-spacing: 0.2px; transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px; }
+    .hero-desc { font-size: 17px; color: rgba(255,255,255,0.65); max-width: 520px; margin-bottom: 40px; line-height: 1.7; animation: fadeSlideUp 0.8s ease 0.2s forwards; opacity: 0; transform: translateY(20px); }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 56px; animation: fadeSlideUp 0.8s ease 0.3s forwards; opacity: 0; transform: translateY(20px); }
+    .hero-cta-primary { position: relative; overflow: hidden; }
+    .hero-cta-primary::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.5s; }
+    .hero-cta-primary:hover::before { left: 100%; }
+    .btn-primary-hero { background: var(--gold); color: var(--dark); padding: 12px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.2px; transition: all 0.25s; display: inline-flex; align-items: center; gap: 6px; }
     .btn-primary-hero:hover { background: var(--white); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,0,0,0.3); }
-    .btn-outline-hero { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.3); padding: 16px 32px; border-radius: 7px; font-size: 15px; font-weight: 500; transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-outline-hero { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.3); padding: 12px 20px; border-radius: 6px; font-size: 13px; font-weight: 500; transition: all 0.25s; display: inline-flex; align-items: center; gap: 6px; }
     .btn-outline-hero:hover { border-color: var(--white); background: rgba(255,255,255,0.07); }
-    .hero-stats { display: flex; gap: 36px; }
-    .hero-stat-num { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--white); line-height: 1; }
+    .hero-stats { display: flex; gap: 36px; animation: fadeSlideUp 0.8s ease 0.4s forwards; opacity: 0; transform: translateY(20px); }
+    .hero-stat-item { position: relative; }
+    .hero-stat-item::after { content: ''; position: absolute; left: calc(100% + 18px); top: 50%; width: 1px; height: 40px; background: rgba(255,255,255,0.1); transform: translateY(-50%); }
+    .hero-stat-item:last-child::after { display: none; }
+    .hero-stat-num { font-family: 'DM Sans', sans-serif; font-size: 32px; font-weight: 700; color: var(--white); line-height: 1; letter-spacing: -0.5px; }
     .hero-stat-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.45); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 4px; }
-    .hero-agent-card { position: relative; background: var(--dark-3); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; overflow: hidden; }
+    .hero-divider { width: 60px; height: 2px; background: var(--gold); margin: 32px 0 32px; animation: fadeSlideUp 0.8s ease 0.35s forwards; opacity: 0; transform: translateY(20px); }
+    .hero-mobile-agent { display: none; align-items: last baseline; gap: 14px; margin-top: 24px; }
+    .hero-mobile-agent img { width: 150px; height: 200px; border-radius: 8px; object-fit: cover; border: 2px solid var(--gold); }
+    .hero-mobile-agent-info { display: flex; flex-direction: column; }
+    .hero-mobile-agent .hero-agent-name { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; color: var(--white); }
+    .hero-mobile-agent .hero-agent-brokerage { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .hero-agent-card { position: relative; background: var(--dark-3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; animation: fadeSlideRight 0.8s ease 0.5s forwards; opacity: 0; transform: translateX(30px); }
+    @keyframes fadeSlideRight { to { opacity: 1; transform: translateX(0); } }
+    .hero-agent-photo { width: 100%; height: 500px; object-fit: cover; object-position: top center; transition: transform 0.6s ease; }
+    .hero-agent-card:hover .hero-agent-photo { transform: scale(1.03); }
     .hero-agent-photo { width: 100%; height: 500px; object-fit: cover; object-position: top center; }
     .hero-agent-info { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%); padding: 40px 28px 28px; }
     .hero-agent-badge { display: inline-block; background: var(--gold); color: var(--dark); font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; padding: 5px 12px; border-radius: 4px; margin-bottom: 12px; }
@@ -195,12 +223,12 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     .hero-agent-brokerage { font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 4px; }
     .hero-stars { display: flex; gap: 3px; margin-top: 10px; }
     .hero-stars span { color: var(--gold); font-size: 14px; }
-    .stats-banner { background: var(--dark-2); padding: 52px 0; border-top: 1px solid rgba(255,255,255,0.06); }
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
-    .stat-item { text-align: center; padding: 12px 24px; border-right: 1px solid rgba(255,255,255,0.08); }
+    .stats-banner { background: var(--dark-2); padding: 28px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+    .stat-item { text-align: center; padding: 8px 16px; border-right: 1px solid rgba(255,255,255,0.08); }
     .stat-item:last-child { border-right: none; }
-    .stat-num { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; color: var(--white); line-height: 1; }
-    .stat-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 1.2px; text-transform: uppercase; margin-top: 8px; }
+    .stat-num { font-family: 'DM Sans', sans-serif; font-size: 28px; font-weight: 700; color: var(--white); line-height: 1; letter-spacing: -1px; }
+    .stat-label { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
     .section-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
     .section-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--gold-mid); max-width: 40px; }
     .section-title { font-family: 'Playfair Display', serif; font-size: clamp(30px, 3.5vw, 44px); font-weight: 700; color: var(--gray-900); line-height: 1.15; letter-spacing: -0.5px; }
@@ -224,6 +252,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     .about { padding: 100px 0; }
     .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
     .about-photo-wrap { position: relative; }
+    .about-photo-label { font-size: 11px; font-weight: 600; letter-spacing: 2.5px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
     .about-photo { width: 100%; height: 580px; object-fit: cover; border-radius: 16px; object-position: top center; }
     .about-photo-badge { position: absolute; bottom: -20px; right: -20px; background: var(--dark); color: var(--white); border-radius: 14px; padding: 24px 28px; border: 2px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
     .about-badge-num { font-family: 'Playfair Display', serif; font-size: 40px; font-weight: 700; color: var(--gold); line-height: 1; }
@@ -240,34 +269,44 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     .apart-header .section-eyebrow { justify-content: center; }
     .apart-header .section-eyebrow::after { display: none; }
     .apart-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
-    .apart-card { background: var(--white); border-radius: 14px; padding: 36px 28px; border: 1px solid var(--gray-200); transition: all 0.3s; }
-    .apart-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
-    .apart-icon { width: 52px; height: 52px; border-radius: 12px; background: var(--dark); display: flex; align-items: center; justify-content: center; margin-bottom: 22px; }
-    .apart-icon svg { color: var(--gold); }
+    .apart-card { background: var(--white); border-radius: 14px; padding: 36px 28px; border: 1px solid var(--gray-200); transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+    .apart-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--gold); transform: scaleX(0); transform-origin: left; transition: transform 0.35s; }
+    .apart-card:hover { border-color: var(--gold); transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.1); }
+    .apart-card:hover::before { transform: scaleX(1); }
+    .apart-icon { width: 52px; height: 52px; border-radius: 12px; background: var(--dark); display: flex; align-items: center; justify-content: center; margin-bottom: 22px; transition: all 0.3s; }
+    .apart-card:hover .apart-icon { background: var(--gold); }
+    .apart-card:hover .apart-icon svg { color: var(--dark); }
+    .apart-icon svg { color: var(--gold); transition: color 0.3s; }
     .apart-card h3 { font-size: 17px; font-weight: 600; color: var(--gray-900); margin-bottom: 10px; }
     .apart-card p { font-size: 14px; color: var(--gray-400); line-height: 1.7; }
     .process { padding: 100px 0; }
     .process-header { text-align: center; max-width: 600px; margin: 0 auto 64px; }
     .process-header .section-eyebrow { justify-content: center; }
     .process-header .section-eyebrow::after { display: none; }
-    .process-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; position: relative; }
-    .process-steps::before { content: ''; position: absolute; top: 36px; left: calc(16.66% + 20px); right: calc(16.66% + 20px); height: 1px; background: var(--gray-200); }
-    .process-step { text-align: center; }
-    .step-num { width: 72px; height: 72px; border-radius: 50%; background: var(--dark); color: var(--white); font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 28px; position: relative; z-index: 1; border: 3px solid transparent; transition: all 0.3s; }
-    .process-step:hover .step-num { background: var(--gold); color: var(--dark); border-color: var(--gold); }
-    .process-step h3 { font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 10px; }
-    .process-step p { font-size: 15px; color: var(--gray-400); line-height: 1.7; }
+    .process-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .process-step { text-align: center; position: relative; padding: 32px 24px; background: var(--white); border-radius: 16px; border: 1px solid var(--gray-200); transition: all 0.3s; }
+    .process-step:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.08); }
+    .step-num { width: 56px; height: 56px; border-radius: 50%; background: var(--dark); color: var(--white); font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; transition: all 0.3s; }
+    .process-step:hover .step-num { background: var(--gold); color: var(--dark); }
+    .process-step h3 { font-size: 17px; font-weight: 600; color: var(--gray-900); margin-bottom: 8px; }
+    .process-step p { font-size: 14px; color: var(--gray-400); line-height: 1.6; }
     .reviews { padding: 100px 0; background: var(--dark); }
     .reviews-header { text-align: center; max-width: 600px; margin: 0 auto 20px; }
     .reviews .section-eyebrow { color: var(--gold); justify-content: center; }
     .reviews .section-eyebrow::after { display: none; }
-    .reviews .section-title { color: var(--white); }
-    .reviews-rating { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 16px 0 56px; }
-    .reviews-stars { display: flex; gap: 4px; }
-    .reviews-stars span { color: var(--gold); font-size: 20px; }
-    .reviews-rating-text { font-size: 15px; color: rgba(255,255,255,0.5); }
+    .reviews .section-title { color: var(--white); margin-bottom: 0; }
+    .reviews-rating { display: none; }
     .reviews-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .review-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 32px; transition: all 0.3s; }
+    .review-card { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 28px; transition: all 0.3s; position: relative; }
+    .review-card:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.07); transform: translateY(-4px); }
+    .review-quote { color: var(--gold); font-size: 40px; font-family: 'Playfair Display', serif; line-height: 1; margin-bottom: 16px; }
+    .review-text { font-size: 14px; color: rgba(255,255,255,0.75); line-height: 1.75; margin-bottom: 20px; font-style: italic; }
+    .review-author { display: flex; align-items: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px; }
+    .review-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--dark); flex-shrink: 0; }
+    .review-info { flex: 1; }
+    .review-name { font-size: 14px; font-weight: 600; color: var(--white); }
+    .review-stars { display: flex; gap: 2px; margin-top: 4px; }
+    .review-stars span { color: var(--gold); font-size: 12px; }
     .review-card:hover { border-color: var(--gold-mid); background: rgba(255,255,255,0.07); }
     .review-quote { color: var(--gold); font-size: 40px; font-family: 'Playfair Display', serif; line-height: 1; margin-bottom: 16px; }
     .review-text { font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.8; margin-bottom: 24px; font-style: italic; }
@@ -314,22 +353,131 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     .btn-cta-primary:hover { background: var(--white); transform: translateY(-2px); }
     .btn-cta-outline { background: transparent; color: var(--white); border: 1.5px solid rgba(255,255,255,0.25); padding: 18px 40px; border-radius: 8px; font-size: 15px; font-weight: 500; transition: all 0.25s; }
     .btn-cta-outline:hover { border-color: var(--white); background: rgba(255,255,255,0.05); }
-    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 60px 0 36px; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 52px; }
-    .footer-brand .logo-name { color: var(--white); font-size: 22px; }
+    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 52px 0 28px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 40px; margin-bottom: 40px; }
+    .footer-brand { padding-right: 20px; }
+    .footer-brand .logo-name { color: var(--white); font-size: 20px; }
     .footer-brand .logo-sub { color: var(--gold); }
-    .footer-brand-desc { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.8; margin-top: 16px; max-width: 280px; }
-    .footer-col h4 { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
+    .footer-brand-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; margin-top: 14px; max-width: 260px; }
+    .footer-social { display: flex; gap: 12px; margin-top: 20px; }
+    .footer-social a { width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); transition: all 0.2s; }
+    .footer-social a:hover { background: var(--gold); color: var(--dark); }
+    .footer-col h4 { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); margin-bottom: 18px; }
     .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .footer-col ul li a { font-size: 14px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
+    .footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
     .footer-col ul li a:hover { color: var(--gold); }
-    .footer-contact-item { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 8px; }
+    .footer-contact-item { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
     .footer-contact-item a:hover { color: var(--gold); }
-    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
-    .footer-legal { font-size: 12px; color: rgba(255,255,255,0.2); max-width: 500px; text-align: right; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+    .footer-legal { font-size: 11px; color: rgba(255,255,255,0.25); max-width: 480px; text-align: right; line-height: 1.5; }
     @media (max-width: 1024px) { .hero-inner { grid-template-columns: 1fr; } .hero-agent-card { display: none; } .about-grid { grid-template-columns: 1fr; gap: 50px; } .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; } .apart-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 768px) { nav { display: none; } .header-phone { display: none; } .prop-grid, .reviews-grid, .neighborhoods-grid, .process-steps { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .ig-grid { grid-template-columns: repeat(3, 1fr); } .apart-grid { grid-template-columns: 1fr; } .alerts-form { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 32px; } .footer-legal { text-align: left; } }
+    @media (max-width: 768px) { 
+      nav { display: none; } 
+      .header-phone { display: none; } 
+      .hamburger { display: flex !important; }
+      .prop-grid, .reviews-grid, .neighborhoods-grid, .process-steps { grid-template-columns: 1fr; } 
+      .stats-grid { grid-template-columns: repeat(3, 1fr); } 
+      .ig-grid { grid-template-columns: repeat(3, 1fr); } 
+      .apart-grid { grid-template-columns: repeat(2, 1fr); } 
+      .alerts-form { grid-template-columns: 1fr; } 
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } 
+      .footer-legal { text-align: left; } 
+      .hero { min-height: 100dvh; display: flex; align-items: center; }
+      .hero-inner { gap: 30px; padding: 50px 0 40px; }
+      .hero h1 { font-size: clamp(32px, 8vw, 44px); }
+      .hero-desc { font-size: 15px; margin-bottom: 28px; }
+      .hero-stats { gap: 20px; flex-wrap: wrap; }
+      .hero-stat-num { font-size: 28px; }
+      .hero-stat-item::after { display: none; }
+      .hero-stat-item { padding-right: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+      .hero-stat-item:last-child { border-right: none; }
+      .hero-actions { margin-bottom: 30px; }
+      .hero-badge { padding: 6px 12px; font-size: 11px; margin-bottom: 20px; }
+      .hero-divider { margin: 20px 0 20px; }
+      .hero-stats { display: none !important; }
+      .hero-mobile-agent { display: flex; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .hero-inner { grid-template-columns: 1fr 300px; gap: 40px; }
+      .hero-agent-card { max-width: 300px; }
+      .hero-agent-photo { height: 380px; }
+      .hero-agent-info { padding: 28px 20px 20px; }
+      .hero-agent-badge { font-size: 9px; padding: 4px 10px; }
+      .hero-agent-name { font-size: 18px; }
+      .hero-agent-brokerage { font-size: 11px; }
+      .about-grid { gap: 40px; }
+      .about-photo { height: 450px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+    }
+    @media (max-width: 600px) {
+      .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0; }
+      .stat-item { border-right: none !important; padding: 4px 6px; }
+      .stat-num { font-size: 22px; }
+      .stat-label { font-size: 8px; letter-spacing: 0.5px; }
+      .stats-banner { padding: 18px 0; }
+      .section-head { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .view-all-link { align-self: flex-start; }
+      .hero-agent-card { display: none; }
+      .hero-inner { grid-template-columns: 1fr; }
+      .properties { padding: 60px 0; }
+      .prop-grid { gap: 16px; }
+      .prop-card { border-radius: 10px; }
+      .prop-img-wrap { height: 180px; }
+      .prop-body { padding: 16px; }
+      .prop-price { font-size: 20px; }
+      .prop-specs { gap: 12px; font-size: 12px; }
+      .about { padding: 60px 0; }
+      .about-grid { gap: 32px; }
+      .about-photo { height: 350px; border-radius: 12px; }
+      .about-photo-badge { padding: 16px 20px; bottom: -12px; right: -12px; }
+      .about-badge-num { font-size: 28px; }
+      .section-title { font-size: clamp(26px, 5vw, 32px); }
+      .apart { padding: 60px 0; }
+      .apart-header { margin-bottom: 40px; }
+      .apart-grid { gap: 16px; }
+      .apart-card { padding: 24px 20px; border-radius: 10px; }
+      .apart-icon { width: 44px; height: 44px; margin-bottom: 16px; }
+      .apart-card h3 { font-size: 15px; }
+      .apart-card p { font-size: 13px; }
+      .process { padding: 60px 0; }
+      .process-header { margin-bottom: 40px; }
+      .process-steps { gap: 28px; }
+      .process-steps::before { display: none; }
+      .step-num { width: 56px; height: 56px; font-size: 18px; margin-bottom: 20px; }
+      .process-step h3 { font-size: 16px; }
+      .process-step p { font-size: 14px; }
+      .reviews { padding: 60px 0; }
+      .reviews-grid { gap: 16px; }
+      .review-card { padding: 20px; border-radius: 12px; }
+      .review-text { font-size: 14px; }
+      .neighborhoods { padding: 60px 0; }
+      .neighborhoods-header { margin-bottom: 36px; }
+      .neighborhoods-grid { gap: 12px; }
+      .neighborhood-card { height: 160px; border-radius: 10px; }
+      .neighborhood-overlay { padding: 16px; }
+      .neighborhood-name { font-size: 16px; }
+      .instagram { padding: 50px 0; }
+      .ig-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+      .alerts { padding: 50px 0; }
+      .alerts-sub { font-size: 14px; margin-bottom: 24px; }
+      .cta-section { padding: 60px 0; }
+      .cta-sub { font-size: 15px; margin-bottom: 32px; }
+      footer { padding: 40px 0 28px; }
+      .footer-grid { gap: 28px; margin-bottom: 36px; }
+      .footer-brand-desc { font-size: 13px; margin-top: 12px; }
+      .footer-col h4 { margin-bottom: 14px; }
+      .footer-col ul li a { font-size: 13px; }
+      .footer-bottom { padding-top: 20px; flex-direction: column; gap: 12px; }
+      .footer-legal { text-align: left; font-size: 11px; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .hero { min-height: 100dvh; padding: 80px 0 40px; }
+      .hero-inner { padding: 30px 0 30px; }
+      .btn-primary-hero, .btn-outline-hero { padding: 12px 16px; font-size: 12px; flex: 1; justify-content: center; min-width: 140px; }
+      .hero-actions { gap: 8px; justify-content: center; }
+    }
   </style>
 </head>
 <body>
@@ -353,10 +501,43 @@ function generateRealEstateHTML(details: Record<string, string>): string {
         <div class="header-right">
           <a href="tel:${phone}" class="header-phone">${phone}</a>
           <a href="index.html#contact" class="btn-talk">Let's Talk</a>
+          <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </div>
     </div>
   </header>
+
+  <div class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#about">About</a>
+    <a href="listings.html">Listings</a>
+    <a href="index.html#reviews">Reviews</a>
+    <a href="index.html#neighborhoods">Areas</a>
+    <a href="blog.html">Blog</a>
+    <a href="resources.html">Resources</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="tel:${phone}" style="color: var(--gold); font-weight: 600;">📞 ${phone}</a>
+    <button class="mobile-quick-connect" onclick="triggerPopup(); document.querySelector('.mobile-menu').classList.remove('active'); document.querySelector('.hamburger').classList.remove('active');">
+      Quick Connect
+    </button>
+  </div>
+
+  <script>
+    function toggleMobileMenu() {
+      document.querySelector('.mobile-menu').classList.toggle('active');
+      document.querySelector('.hamburger').classList.toggle('active');
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.mobile-menu').classList.remove('active');
+        document.querySelector('.hamburger').classList.remove('active');
+      });
+    });
+  </script>
 
   <section class="hero">
     <div class="hero-bg"></div>
@@ -374,6 +555,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
             </a>
             <a href="#contact" class="btn-outline-hero">Get Your Home's Value</a>
           </div>
+          <div class="hero-divider"></div>
           <div class="hero-stats">
             <div class="hero-stat-item">
               <div class="hero-stat-num">${homesSOLD}</div>
@@ -386,6 +568,13 @@ function generateRealEstateHTML(details: Record<string, string>): string {
             <div class="hero-stat-item">
               <div class="hero-stat-num">${rating}</div>
               <div class="hero-stat-label">Star Rating</div>
+            </div>
+          </div>
+          <div class="hero-mobile-agent">
+            <img src="${agentPhotoUrl}" alt="${companyName}">
+            <div class="hero-mobile-agent-info">
+              <span class="hero-agent-name">${companyName}</span>
+              <span class="hero-agent-brokerage">${brokerageName}</span>
             </div>
           </div>
         </div>
@@ -416,10 +605,6 @@ function generateRealEstateHTML(details: Record<string, string>): string {
         <div class="stat-item">
           <div class="stat-num">${rating}</div>
           <div class="stat-label">Star Rating</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num">${province}</div>
-          <div class="stat-label">Province</div>
         </div>
       </div>
     </div>
@@ -459,6 +644,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     <div class="container">
       <div class="about-grid">
         <div class="about-photo-wrap">
+          <div class="about-photo-label">Your Trusted Partner</div>
           <img src="${agentPhotoUrl}" alt="${companyName}" class="about-photo">
           <div class="about-photo-badge">
             <div class="about-badge-num">${homesSOLD}</div>
@@ -542,23 +728,18 @@ function generateRealEstateHTML(details: Record<string, string>): string {
   <section class="reviews" id="reviews">
     <div class="container">
       <div class="reviews-header">
-        <div class="section-eyebrow">Google Reviews</div>
+        <div class="section-eyebrow">What Clients Say</div>
         <h2 class="section-title">Client <em>Testimonials</em></h2>
-        <div class="reviews-rating">
-          <div class="reviews-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-          <span class="reviews-rating-text">${rating} based on ${homesSOLD} verified reviews</span>
-        </div>
       </div>
       <div class="reviews-grid">
         ${reviews.filter(r => r.name).map(r => `
         <div class="review-card">
-          <div class="review-quote">"</div>
           <p class="review-text">${r.text}</p>
           <div class="review-author">
             <div class="review-avatar">${r.name.charAt(0)}</div>
-            <div>
+            <div class="review-info">
               <div class="review-name">${r.name}</div>
-              <div class="review-type">${r.type}</div>
+              <div class="review-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
             </div>
           </div>
         </div>
@@ -670,6 +851,17 @@ function generateRealEstateHTML(details: Record<string, string>): string {
             <span class="logo-sub">Real Estate</span>
           </div>
           <p class="footer-brand-desc">Helping families find their perfect home in Greater ${city}. Your trusted partner for buying, selling, and investing in the ${provFull} market.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+          </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
@@ -756,7 +948,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     const agentEmail = "${email}";
     const agentServices = "Home Buying, Home Selling, Investment Properties";
     const systemPrompt = "You are " + agentName + ", a real estate agent in " + agentCity + ", " + agentProvince + ". You help people buy and sell homes. Your services: " + agentServices + ". Keep replies short (1-2 sentences). Be professional and friendly. Suggest properties when relevant. Try to convert users into leads. Offer viewing appointments. Contact: " + agentPhone + ", " + agentEmail;
-    const openRouterApiKey = "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";
+    const openRouterApiKey = "sk..";
     
     const messagesDiv = document.getElementById('chat-messages');
     
@@ -1071,7 +1263,8 @@ function generateListingsPage(details: Record<string, string>): string {
     { title: 'Starter Home', price: '$725,000', beds: 2, baths: 1, sqft: '950', address: '67 Cedar Road, Mississauga', image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&q=80', type: 'House' },
   ];
 
-  return `<!DOCTYPE html>
+  return `<!
+DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -1096,11 +1289,22 @@ function generateListingsPage(details: Record<string, string>): string {
     nav { display: flex; align-items: center; gap: 28px; }
     nav a { font-size: 14px; font-weight: 500; color: var(--gray-500); transition: color 0.2s; letter-spacing: 0.2px; }
     nav a:hover { color: var(--gray-900); }
-    .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .header-phone { font-size: 14px; font-weight: 500; color: var(--gray-700); }
     .btn-talk { background: var(--dark); color: var(--white); padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; transition: all 0.25s; white-space: nowrap; }
     .btn-talk:hover { background: var(--gold); color: var(--dark); }
-    .page-hero { background: var(--dark); padding: 140px 0 80px; text-align: center; position: relative; overflow: hidden; }
+    .hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 40px; height: 40px; background: var(--gray-100); border: none; border-radius: 8px; cursor: pointer; padding: 8px; transition: all 0.2s; }
+    .hamburger:hover { background: var(--gray-200); }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--gray-900); border-radius: 2px; transition: all 0.3s ease; }
+    .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.active span:nth-child(2) { opacity: 0; transform: scale(0); }
+    .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display: none; position: fixed; top: 65px; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 20px; flex-direction: column; gap: 16px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .mobile-menu.active { display: flex; }
+    .mobile-menu a { font-size: 15px; font-weight: 500; color: var(--gray-700); padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-quick-connect { background: var(--gold); color: var(--dark); border: none; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+    .page-hero { background: var(--dark); padding: 140px 0 60px; text-align: center; position: relative; overflow: hidden; min-height: auto; }
     .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, var(--gold) 0%, transparent 70%); opacity: 0.1; }
     .page-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 56px); font-weight: 700; color: var(--white); line-height: 1.12; letter-spacing: -1px; margin-bottom: 18px; position: relative; }
     .page-hero p { font-size: 17px; color: rgba(255,255,255,0.6); max-width: 540px; margin: 0 auto; position: relative; }
@@ -1108,36 +1312,63 @@ function generateListingsPage(details: Record<string, string>): string {
     .filters-inner { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
     .filters select { padding: 12px 16px; border: 1px solid var(--gray-200); border-radius: 8px; font-size: 14px; min-width: 160px; background: white; font-family: inherit; cursor: pointer; }
     .filters .count { font-size: 14px; color: var(--gray-500); margin-left: auto; }
-    .listings-section { padding: 64px 0; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(28px, 3vw, 36px); font-weight: 700; color: var(--gray-900); margin-bottom: 40px; }
-    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
-    .listing-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; transition: all 0.3s; }
-    .listing-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.1); border-color: var(--gold); }
-    .listing-img { height: 240px; background-size: cover; background-position: center; position: relative; }
-    .listing-tag { position: absolute; top: 16px; left: 16px; background: var(--gold); color: var(--dark); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-    .listing-content { padding: 24px; }
-    .listing-price { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--gray-900); margin-bottom: 6px; }
-    .listing-title { font-size: 17px; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
-    .listing-address { font-size: 14px; color: var(--gray-500); margin-bottom: 16px; }
-    .listing-stats { display: flex; gap: 20px; padding-top: 16px; border-top: 1px solid var(--gray-200); }
-    .listing-stat { font-size: 14px; color: var(--gray-500); }
+    .listings-section { padding: 40px 0; }
+    .section-title { font-family: 'Playfair Display', serif; font-size: clamp(24px, 3vw, 36px); font-weight: 700; color: var(--gray-900); margin-bottom: 24px; }
+    .listings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+    .listing-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+    .listing-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--gold); }
+    .listing-img { height: 200px; background-size: cover; background-position: center; position: relative; }
+    .listing-tag { position: absolute; top: 12px; left: 12px; background: var(--gold); color: var(--dark); padding: 5px 10px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+    .listing-content { padding: 18px; }
+    .listing-price { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+    .listing-title { font-size: 15px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+    .listing-address { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
+    .listing-stats { display: flex; gap: 14px; padding-top: 12px; border-top: 1px solid var(--gray-200); }
+    .listing-stat { font-size: 13px; color: var(--gray-500); }
     .listing-stat strong { color: var(--gray-900); }
-    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 60px 0 36px; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 52px; }
-    .footer-brand .logo-name { color: var(--white); font-size: 22px; }
+    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 0 24px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer-brand .logo-name { color: var(--white); font-size: 20px; }
     .footer-brand .logo-sub { color: var(--gold); }
-    .footer-brand-desc { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.8; margin-top: 16px; max-width: 280px; }
-    .footer-col h4 { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .footer-col ul li a { font-size: 14px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
+    .footer-brand-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; margin-top: 12px; max-width: 240px; }
+    .footer-social { display: flex; gap: 10px; margin-top: 16px; }
+    .footer-social a { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); transition: all 0.2s; }
+    .footer-social a:hover { background: var(--gold); color: var(--dark); }
+    .footer-col h4 { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
     .footer-col ul li a:hover { color: var(--gold); }
-    .footer-contact-item { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 8px; }
+    .footer-contact-item { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 6px; }
     .footer-contact-item a:hover { color: var(--gold); }
-    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
-    .footer-legal { font-size: 12px; color: rgba(255,255,255,0.2); max-width: 500px; text-align: right; }
-    @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; } }
-    @media (max-width: 768px) { nav { display: none; } .page-hero h1 { font-size: 32px; } .listings-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 32px; } .footer-legal { text-align: left; } }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+    .footer-legal { font-size: 11px; color: rgba(255,255,255,0.25); max-width: 400px; text-align: right; line-height: 1.5; }
+    @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } }
+    @media (max-width: 768px) { 
+      nav { display: none; } 
+      .header-phone { display: none; }
+      .hamburger { display: flex !important; }
+      .page-hero { padding: 120px 0 40px; }
+      .page-hero h1 { font-size: 28px; }
+      .page-hero p { font-size: 15px; }
+      .listings-grid { grid-template-columns: 1fr; gap: 16px; }
+      .listing-card { border-radius: 10px; }
+      .listing-img { height: 180px; }
+      .listing-content { padding: 14px; }
+      .listing-price { font-size: 20px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .footer-legal { text-align: left; }
+      .mobile-menu { top: 61px; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .page-hero { padding: 100px 0 30px; }
+      .page-hero h1 { font-size: 24px; }
+      .filters-inner { gap: 8px; }
+      .filters select { flex: 1; min-width: 100px; padding: 8px 10px; font-size: 12px; }
+      .filters .count { width: 100%; text-align: center; margin-top: 8px; }
+      .listing-stats { gap: 10px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -1161,10 +1392,88 @@ function generateListingsPage(details: Record<string, string>): string {
         <div class="header-right">
           <a href="tel:${phone}" class="header-phone">${phone}</a>
           <a href="index.html#contact" class="btn-talk">Let's Talk</a>
+          <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </div>
     </div>
   </header>
+
+  <div class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#about">About</a>
+    <a href="listings.html">Listings</a>
+    <a href="index.html#reviews">Reviews</a>
+    <a href="index.html#neighborhoods">Areas</a>
+    <a href="blog.html">Blog</a>
+    <a href="resources.html">Resources</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="tel:${phone}" style="color: var(--gold); font-weight: 600;">📞 ${phone}</a>
+  </div>
+
+  <script>
+    function toggleMobileMenu() {
+      document.querySelector('.mobile-menu').classList.toggle('active');
+      document.querySelector('.hamburger').classList.toggle('active');
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.mobile-menu').classList.remove('active');
+        document.querySelector('.hamburger').classList.remove('active');
+      });
+    });
+  </script>
+
+  <script>
+    const typeSelect = document.querySelectorAll('.filters select')[0];
+    const priceSelect = document.querySelectorAll('.filters select')[1];
+    const bedsSelect = document.querySelectorAll('.filters select')[2];
+    const countEl = document.querySelector('.filters .count');
+    
+    function filterListings() {
+      const type = typeSelect.value.toLowerCase();
+      const price = priceSelect.value;
+      const beds = bedsSelect.value;
+      
+      const cards = document.querySelectorAll('.listing-card');
+      let visible = 0;
+      
+      cards.forEach(card => {
+        const tag = card.querySelector('.listing-tag').textContent.toLowerCase();
+        const priceText = card.querySelector('.listing-price').textContent.replace(/[$,]/g, '');
+        const priceNum = parseInt(priceText);
+        const bedsText = card.querySelector('.listing-stat strong').textContent;
+        const bedsNum = parseInt(bedsText);
+        
+        let show = true;
+        
+        if (type !== 'all types' && type !== 'all' && tag !== type) show = false;
+        
+        if (price === 'Under $1M' && priceNum >= 1000000) show = false;
+        if (price === '$1M - $2M' && (priceNum < 1000000 || priceNum >= 2000000)) show = false;
+        if (price === '$2M - $3M' && (priceNum < 2000000 || priceNum >= 3000000)) show = false;
+        if (price === '$3M+' && priceNum < 3000000) show = false;
+        
+        if (beds === '2+' && bedsNum < 2) show = false;
+        if (beds === '3+' && bedsNum < 3) show = false;
+        if (beds === '4+' && bedsNum < 4) show = false;
+        if (beds === '5+' && bedsNum < 5) show = false;
+        
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+      
+      countEl.textContent = visible + ' propert' + (visible === 1 ? 'y' : 'ies') + ' found';
+    }
+    
+    typeSelect.addEventListener('change', filterListings);
+    priceSelect.addEventListener('change', filterListings);
+    bedsSelect.addEventListener('change', filterListings);
+  </script>
+
   <section class="page-hero">
     <div class="container"><h1>Property Listings</h1><p>Browse our available properties in ${city}, ${provFull}</p></div>
   </section>
@@ -1194,6 +1503,17 @@ function generateListingsPage(details: Record<string, string>): string {
             <span class="logo-sub">Real Estate</span>
           </div>
           <p class="footer-brand-desc">Helping families find their perfect home in Greater ${city}. Your trusted partner for buying, selling, and investing in the ${provFull} market.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+          </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>
@@ -1240,12 +1560,12 @@ function generateBlogPage(details: Record<string, string>): string {
   const provFull = provinceName[province] || province;
 
   const posts = [
-    { title: 'Top 10 Tips for First-Time Home Buyers', excerpt: 'Buying your first home is one of the biggest decisions you\'ll make. Here are our top tips to help you navigate the process with confidence.', date: 'March 10, 2026', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80', category: 'Buying' },
-    { title: '2026 Real Estate Market Trends', excerpt: 'The real estate market continues to evolve. Here\'s what buyers and sellers need to know about the current landscape.', date: 'February 28, 2026', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', category: 'Market' },
-    { title: 'How to Stage Your Home for a Quick Sale', excerpt: 'First impressions matter. Learn how to stage your home to attract more buyers and get top dollar for your property.', date: 'February 15, 2026', image: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80', category: 'Selling' },
-    { title: 'Best Neighborhoods for Families in Toronto', excerpt: 'Looking for the perfect family neighborhood? We\'ve compiled a list of the top areas in Toronto for families.', date: 'February 1, 2026', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80', category: 'Guide' },
-    { title: 'Understanding Mortgage Rates in 2026', excerpt: 'Mortgage rates play a crucial role in your home buying journey. Here\'s what you need to know about current rates.', date: 'January 20, 2026', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80', category: 'Finance' },
-    { title: 'Condo vs House: Which is Right for You?', excerpt: 'We break down the pros and cons of condos and houses to help you make the right choice for your lifestyle.', date: 'January 10, 2026', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', category: 'Guide' },
+    { title: 'Top 10 Tips for First-Time Home Buyers', excerpt: 'Buying your first home is one of the biggest decisions you\'ll make. Here are our top tips to help you navigate the process with confidence.', date: 'March 10, 2026', image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&q=80', category: 'buying' },
+    { title: '2026 Real Estate Market Trends', excerpt: 'The real estate market continues to evolve. Here\'s what buyers and sellers need to know about the current landscape.', date: 'February 28, 2026', image: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80', category: 'market' },
+    { title: 'How to Stage Your Home for a Quick Sale', excerpt: 'First impressions matter. Learn how to stage your home to attract more buyers and get top dollar for your property.', date: 'February 15, 2026', image: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=800&q=80', category: 'selling' },
+    { title: 'Best Neighborhoods for Families in Toronto', excerpt: 'Looking for the perfect family neighborhood? We\'ve compiled a list of the top areas in Toronto for families.', date: 'February 1, 2026', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80', category: 'guide' },
+    { title: 'Understanding Mortgage Rates in 2026', excerpt: 'Mortgage rates play a crucial role in your home buying journey. Here\'s what you need to know about current rates.', date: 'January 20, 2026', image: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80', category: 'finance' },
+    { title: 'Condo vs House: Which is Right for You?', excerpt: 'We break down the pros and cons of condos and houses to help you make the right choice for your lifestyle.', date: 'January 10, 2026', image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&q=80', category: 'guide' },
   ];
 
   return `<!DOCTYPE html>
@@ -1273,43 +1593,76 @@ function generateBlogPage(details: Record<string, string>): string {
     nav { display: flex; align-items: center; gap: 28px; }
     nav a { font-size: 14px; font-weight: 500; color: var(--gray-500); transition: color 0.2s; letter-spacing: 0.2px; }
     nav a:hover { color: var(--gray-900); }
-    .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+    .header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
     .header-phone { font-size: 14px; font-weight: 500; color: var(--gray-700); }
     .btn-talk { background: var(--dark); color: var(--white); padding: 10px 22px; border-radius: 6px; font-size: 13px; font-weight: 600; letter-spacing: 0.3px; transition: all 0.25s; white-space: nowrap; }
     .btn-talk:hover { background: var(--gold); color: var(--dark); }
-    .page-hero { background: var(--dark); padding: 140px 0 80px; text-align: center; position: relative; overflow: hidden; }
+    .hamburger { display: none; flex-direction: column; justify-content: center; align-items: center; gap: 5px; width: 40px; height: 40px; background: var(--gray-100); border: none; border-radius: 8px; cursor: pointer; padding: 8px; transition: all 0.2s; }
+    .hamburger:hover { background: var(--gray-200); }
+    .hamburger span { display: block; width: 20px; height: 2px; background: var(--gray-900); border-radius: 2px; transition: all 0.3s ease; }
+    .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger.active span:nth-child(2) { opacity: 0; transform: scale(0); }
+    .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    .mobile-menu { display: none; position: fixed; top: 65px; left: 0; right: 0; background: var(--white); border-bottom: 1px solid var(--gray-200); padding: 20px; flex-direction: column; gap: 16px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+    .mobile-menu.active { display: flex; }
+    .mobile-menu a { font-size: 15px; font-weight: 500; color: var(--gray-700); padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .page-hero { background: var(--dark); padding: 140px 0 60px; text-align: center; position: relative; overflow: hidden; min-height: auto; }
     .page-hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 0%, var(--gold) 0%, transparent 70%); opacity: 0.1; }
     .page-hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(36px, 5vw, 56px); font-weight: 700; color: var(--white); line-height: 1.12; letter-spacing: -1px; margin-bottom: 18px; position: relative; }
     .page-hero p { font-size: 17px; color: rgba(255,255,255,0.6); max-width: 540px; margin: 0 auto; position: relative; }
-    .categories { padding: 32px 0; display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .category { padding: 8px 20px; border: 1px solid var(--gray-200); border-radius: 24px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; background: var(--white); color: var(--gray-500); }
+    .categories { padding: 20px 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+    .category { padding: 6px 14px; border: 1px solid var(--gray-200); border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; background: var(--white); color: var(--gray-500); }
     .category:hover, .category.active { background: var(--gold); color: var(--dark); border-color: var(--gold); }
-    .blog-section { padding: 64px 0; }
-    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
-    .blog-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 14px; overflow: hidden; transition: all 0.3s; }
-    .blog-card:hover { transform: translateY(-6px); box-shadow: 0 16px 32px rgba(0,0,0,0.1); border-color: var(--gold); }
-    .blog-img { height: 200px; background-size: cover; background-position: center; }
-    .blog-content { padding: 24px; }
-    .blog-category { display: inline-block; background: var(--gray-100); color: var(--gray-500); padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
-    .blog-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--gray-900); margin-bottom: 12px; line-height: 1.3; }
-    .blog-excerpt { font-size: 14px; color: var(--gray-500); margin-bottom: 16px; }
-    .blog-meta { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--gray-400); }
-    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 60px 0 36px; }
-    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 52px; }
-    .footer-brand .logo-name { color: var(--white); font-size: 22px; }
+    .blog-section { padding: 40px 0; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .blog-card { background: var(--white); border: 1px solid var(--gray-200); border-radius: 12px; overflow: hidden; transition: all 0.3s; }
+    .blog-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); border-color: var(--gold); }
+    .blog-img { height: 160px; background-size: cover; background-position: center; }
+    .blog-content { padding: 18px; }
+    .blog-category { display: inline-block; background: var(--gray-100); color: var(--gray-500); padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-bottom: 10px; }
+    .blog-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: var(--gray-900); margin-bottom: 10px; line-height: 1.3; }
+    .blog-excerpt { font-size: 13px; color: var(--gray-500); margin-bottom: 12px; }
+    .blog-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--gray-400); }
+    footer { background: var(--dark); border-top: 1px solid rgba(255,255,255,0.06); padding: 40px 0 24px; }
+    .footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 32px; margin-bottom: 32px; }
+    .footer-brand .logo-name { color: var(--white); font-size: 20px; }
     .footer-brand .logo-sub { color: var(--gold); }
-    .footer-brand-desc { font-size: 14px; color: rgba(255,255,255,0.4); line-height: 1.8; margin-top: 16px; max-width: 280px; }
-    .footer-col h4 { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 20px; }
-    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .footer-col ul li a { font-size: 14px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
+    .footer-brand-desc { font-size: 13px; color: rgba(255,255,255,0.45); line-height: 1.7; margin-top: 12px; max-width: 240px; }
+    .footer-social { display: flex; gap: 10px; margin-top: 16px; }
+    .footer-social a { width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.5); transition: all 0.2s; }
+    .footer-social a:hover { background: var(--gold); color: var(--dark); }
+    .footer-col h4 { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 14px; }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col ul li a { font-size: 13px; color: rgba(255,255,255,0.55); transition: color 0.2s; }
     .footer-col ul li a:hover { color: var(--gold); }
-    .footer-contact-item { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 8px; }
+    .footer-contact-item { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 6px; }
     .footer-contact-item a:hover { color: var(--gold); }
-    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .footer-copy { font-size: 13px; color: rgba(255,255,255,0.25); }
-    .footer-legal { font-size: 12px; color: rgba(255,255,255,0.2); max-width: 500px; text-align: right; }
-    @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 36px; } }
-    @media (max-width: 768px) { nav { display: none; } .page-hero h1 { font-size: 32px; } .blog-grid { grid-template-columns: 1fr; } .footer-grid { grid-template-columns: 1fr; gap: 32px; } .footer-legal { text-align: left; } }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.06); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    .footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+    .footer-legal { font-size: 11px; color: rgba(255,255,255,0.25); max-width: 400px; text-align: right; line-height: 1.5; }
+    @media (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } }
+    @media (max-width: 768px) { 
+      nav { display: none; } 
+      .header-phone { display: none; }
+      .hamburger { display: flex !important; }
+      .page-hero { padding: 120px 0 40px; }
+      .page-hero h1 { font-size: 28px; }
+      .page-hero p { font-size: 15px; }
+      .blog-grid { grid-template-columns: 1fr; gap: 16px; }
+      .blog-card { border-radius: 10px; }
+      .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+      .footer-legal { text-align: left; }
+      .mobile-menu { top: 61px; }
+    }
+    @media (max-width: 480px) {
+      .container { padding: 0 16px; }
+      .page-hero { padding: 100px 0 30px; }
+      .page-hero h1 { font-size: 24px; }
+      .categories { gap: 6px; }
+      .category { padding: 5px 12px; font-size: 11px; }
+      .blog-img { height: 140px; }
+    }
   </style>
 </head>
 <body>
@@ -1333,27 +1686,76 @@ function generateBlogPage(details: Record<string, string>): string {
         <div class="header-right">
           <a href="tel:${phone}" class="header-phone">${phone}</a>
           <a href="index.html#contact" class="btn-talk">Let's Talk</a>
+          <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
       </div>
     </div>
   </header>
+
+  <div class="mobile-menu">
+    <a href="index.html">Home</a>
+    <a href="index.html#about">About</a>
+    <a href="listings.html">Listings</a>
+    <a href="index.html#reviews">Reviews</a>
+    <a href="index.html#neighborhoods">Areas</a>
+    <a href="blog.html">Blog</a>
+    <a href="resources.html">Resources</a>
+    <a href="index.html#contact">Contact</a>
+    <a href="tel:${phone}" style="color: var(--gold); font-weight: 600;">📞 ${phone}</a>
+  </div>
+
+  <script>
+    function toggleMobileMenu() {
+      document.querySelector('.mobile-menu').classList.toggle('active');
+      document.querySelector('.hamburger').classList.toggle('active');
+    }
+    document.querySelectorAll('.mobile-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        document.querySelector('.mobile-menu').classList.remove('active');
+        document.querySelector('.hamburger').classList.remove('active');
+      });
+    });
+  </script>
+
+  <script>
+    document.querySelectorAll('.category').forEach(cat => {
+      cat.addEventListener('click', () => {
+        document.querySelectorAll('.category').forEach(c => c.classList.remove('active'));
+        cat.classList.add('active');
+        const category = cat.dataset.category;
+        
+        document.querySelectorAll('.blog-card').forEach(card => {
+          if (category === 'all' || card.dataset.category === category) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+
   <section class="page-hero">
     <div class="container"><h1>Real Estate Blog</h1><p>Expert insights, tips, and market updates from ${companyName}</p></div>
   </section>
   <section class="categories">
     <div class="container">
-      <span class="category active">All Posts</span>
-      <span class="category">Buying</span>
-      <span class="category">Selling</span>
-      <span class="category">Market</span>
-      <span class="category">Finance</span>
-      <span class="category">Guide</span>
+      <span class="category active" data-category="all">All Posts</span>
+      <span class="category" data-category="buying">Buying</span>
+      <span class="category" data-category="selling">Selling</span>
+      <span class="category" data-category="market">Market</span>
+      <span class="category" data-category="finance">Finance</span>
+      <span class="category" data-category="guide">Guide</span>
     </div>
   </section>
   <section class="blog-section">
     <div class="container">
       <div class="blog-grid">
-        ${posts.map(p => `<div class="blog-card"><div class="blog-img" style="background-image: url('${p.image}')"></div><div class="blog-content"><span class="blog-category">${p.category}</span><div class="blog-title">${p.title}</div><p class="blog-excerpt">${p.excerpt}</p><div class="blog-meta"><span>${p.date}</span><span>Read more →</span></div></div></div>`).join('')}
+        ${posts.map(p => `<div class="blog-card" data-category="${p.category}"><div class="blog-img" style="background-image: url('${p.image}')"></div><div class="blog-content"><span class="blog-category">${p.category.charAt(0).toUpperCase() + p.category.slice(1)}</span><div class="blog-title">${p.title}</div><p class="blog-excerpt">${p.excerpt}</p><div class="blog-meta"><span>${p.date}</span><span>Read more →</span></div></div></div>`).join('')}
       </div>
     </div>
   </section>
@@ -1366,6 +1768,17 @@ function generateBlogPage(details: Record<string, string>): string {
             <span class="logo-sub">Real Estate</span>
           </div>
           <p class="footer-brand-desc">Helping families find their perfect home in Greater ${city}. Your trusted partner for buying, selling, and investing in the ${provFull} market.</p>
+          <div class="footer-social">
+            <a href="#" aria-label="Facebook">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn">
+              <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            </a>
+          </div>
         </div>
         <div class="footer-col">
           <h4>Quick Links</h4>

@@ -30,7 +30,7 @@ export default function EditPage() {
         const site = siteResponse.site;
         
         const found = templates.find(t => t.id === site.templateId);
-        setTemplate(found);
+        setTemplate(found ?? null); // this can be an issue !!!!!!!!!!!!!!!!!!!!!!!!
         setSiteData({
           id: site.siteId,
           templateId: site.templateId,

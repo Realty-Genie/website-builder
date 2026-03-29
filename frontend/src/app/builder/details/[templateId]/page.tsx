@@ -22,7 +22,7 @@ export default function DetailsPage() {
     const templateId = params.templateId as string;
     const found = templates.find(t => t.id === templateId);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTemplate(found);
+    setTemplate(found ?? null); // this can be an issue !!!!!!!!!!!!!!!!!!!!!!!!
   }, [hasPro, params.templateId]);
 
   if (!hasPro || !template) {
