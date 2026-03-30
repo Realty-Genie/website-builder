@@ -26,6 +26,7 @@ interface Site {
   siteName: string;
   status: 'draft' | 'building' | 'deployed' | 'failed';
   liveUrl?: string;
+  deployError?: string | null;
   createdAt: string;
 }
 
@@ -192,6 +193,12 @@ export default function DashboardPage() {
                       <Clock className="w-3 h-3" />
                       {new Date(site.createdAt).toLocaleDateString()}
                     </div>
+
+                    {site.status === 'failed' && site.deployError ? (
+                      <p className="text-xs leading-5 text-red-400/90">
+                        {site.deployError}
+                      </p>
+                    ) : null}
                   </div>
 
                   {/* ACTIONS */}

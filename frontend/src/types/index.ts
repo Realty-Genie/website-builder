@@ -30,6 +30,7 @@ export interface Site {
   status: 'draft' | 'building' | 'deployed' | 'failed';
   previewUrl?: string;
   liveUrl?: string;
+  deployError?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +63,7 @@ export interface CreateSiteResponse {
   previewUrl?: string;
   liveUrl?: string;
   error?: string;
+  deployError?: string | null;
 }
 
 export interface SiteDocument extends Site {

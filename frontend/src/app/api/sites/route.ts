@@ -8,6 +8,7 @@ import type { Site } from '@/types';
 
 type SiteRecord = Omit<Site, 'liveUrl'> & {
   liveUrl: string | null;
+  deployError?: string | null;
 };
 
 function getErrorDetails(error: unknown) {
@@ -94,6 +95,7 @@ export async function GET(request: NextRequest) {
 
         let finalStatus = 'building';
         let liveUrl = site.liveUrl;
+        let deployError: string | null = null;
 
         if (deployResult.success && deployResult.url) {
           liveUrl = deployResult.url;
@@ -101,14 +103,22 @@ export async function GET(request: NextRequest) {
           finalStatus = isLive ? 'deployed' : 'deployed';
         } else {
           finalStatus = 'failed';
+          deployError = deployResult.error || 'Deployment failed';
         }
 
         await sitesCollection.updateOne(
           { siteId: id },
-          { $set: { status: finalStatus, liveUrl, updatedAt: new Date().toISOString() } }
+          {
+            $set: {
+              status: finalStatus,
+              liveUrl,
+              deployError,
+              updatedAt: new Date().toISOString(),
+            },
+          }
         );
 
-        return NextResponse.json({ success: true, status: finalStatus, liveUrl });
+        return NextResponse.json({ success: true, status: finalStatus, liveUrl, deployError });
       }
 
       return NextResponse.json({ success: true, site: { ...site, id: site.siteId } });
@@ -123,6 +133,7 @@ export async function GET(request: NextRequest) {
         siteName: site.details.companyName || site.siteName,
         status: site.status,
         liveUrl: site.liveUrl,
+        deployError: site.deployError ?? null,
         createdAt: site.createdAt,
       })),
     });
@@ -174,6 +185,7 @@ export async function POST(request: NextRequest) {
       details,
       status: 'building',
       liveUrl: null,
+      deployError: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -195,6 +207,7 @@ export async function POST(request: NextRequest) {
 
     let finalStatus = 'building';
     let liveUrl: string | null = null;
+    let deployError: string | null = null;
 
     if (deployResult.success && deployResult.url) {
       liveUrl = deployResult.url;
@@ -202,12 +215,20 @@ export async function POST(request: NextRequest) {
       finalStatus = isLive ? 'deployed' : 'deployed';
     } else {
       finalStatus = 'failed';
+      deployError = deployResult.error || 'Deployment failed';
       console.error('Deployment failed:', deployResult.error);
     }
 
     await sitesCollection.updateOne(
       { siteId },
-      { $set: { status: finalStatus, liveUrl, updatedAt: new Date().toISOString() } }
+      {
+        $set: {
+          status: finalStatus,
+          liveUrl,
+          deployError,
+          updatedAt: new Date().toISOString(),
+        },
+      }
     );
 
     return NextResponse.json({
@@ -215,6 +236,7 @@ export async function POST(request: NextRequest) {
       siteId,
       status: finalStatus,
       liveUrl,
+      deployError,
       error: deployResult.success ? undefined : deployResult.error,
     });
   } catch (error: unknown) {
@@ -271,7 +293,14 @@ export async function PUT(request: NextRequest) {
 
     await sitesCollection.updateOne(
       { siteId: id },
-      { $set: { details: updatedDetails, status: 'building', updatedAt: new Date().toISOString() } }
+      {
+        $set: {
+          details: updatedDetails,
+          status: 'building',
+          deployError: null,
+          updatedAt: new Date().toISOString(),
+        },
+      }
     );
 
     const deployResult = await deployToGitHub(
@@ -286,6 +315,7 @@ export async function PUT(request: NextRequest) {
 
     let finalStatus = 'building';
     let liveUrl = site.liveUrl;
+    let deployError: string | null = null;
 
     if (deployResult.success && deployResult.url) {
       liveUrl = deployResult.url;
@@ -293,14 +323,22 @@ export async function PUT(request: NextRequest) {
       finalStatus = isLive ? 'deployed' : 'deployed';
     } else {
       finalStatus = 'failed';
+      deployError = deployResult.error || 'Deployment failed';
     }
 
     await sitesCollection.updateOne(
       { siteId: id },
-      { $set: { status: finalStatus, liveUrl, updatedAt: new Date().toISOString() } }
+      {
+        $set: {
+          status: finalStatus,
+          liveUrl,
+          deployError,
+          updatedAt: new Date().toISOString(),
+        },
+      }
     );
 
-    return NextResponse.json({ success: true, status: finalStatus, liveUrl });
+    return NextResponse.json({ success: true, status: finalStatus, liveUrl, deployError });
   } catch (error: unknown) {
     console.error('Error updating site:', error);
     return NextResponse.json({ success: false, error: 'Failed to update site' }, { status: 500 });

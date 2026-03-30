@@ -68,11 +68,6 @@ function getAccessToken() {
     return null;
   }
 
-  const storedToken = window.localStorage.getItem('accessToken')?.trim();
-  if (storedToken) {
-    return storedToken;
-  }
-
   const searchParams = new URLSearchParams(window.location.search);
   const hash = window.location.hash.startsWith('#')
     ? window.location.hash.slice(1)
@@ -88,7 +83,20 @@ function getAccessToken() {
     }
   }
 
+  const storedToken = window.localStorage.getItem('accessToken')?.trim();
+  if (storedToken) {
+    return storedToken;
+  }
+
   return null;
+}
+
+function clearStoredAccessToken() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem('accessToken');
 }
 
 function getBackendUrl() {
@@ -122,6 +130,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const data = await parseJson(response);
 
   if (response.status === 401) {
+    clearStoredAccessToken();
     useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
     throw new Error(data?.error || 'Unauthorized');
   }
@@ -177,6 +186,7 @@ export const api = {
       const data = await parseJson(response);
 
       if (response.status === 401) {
+        clearStoredAccessToken();
         useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
       }
 
@@ -211,6 +221,7 @@ export const api = {
       const data = await parseJson(response);
 
       if (response.status === 401) {
+        clearStoredAccessToken();
         useAuthStore.getState().clearSession(data?.error || 'Sign in from the CRM to continue.');
       }
 
@@ -244,6 +255,7 @@ export async function checkAuth() {
     const data = await parseJson(response);
 
     if (response.status === 401) {
+      clearStoredAccessToken();
       useAuthStore.getState().clearSession();
       return false;
     }
@@ -256,6 +268,7 @@ export async function checkAuth() {
     }
 
     if (!response.ok) {
+      clearStoredAccessToken();
       useAuthStore.getState().clearSession(data?.error || 'Unable to verify CRM access.');
       return false;
     }
@@ -263,6 +276,7 @@ export async function checkAuth() {
     const user = normalizeAuthUser(data);
 
     if (!user) {
+      clearStoredAccessToken();
       useAuthStore.getState().clearSession('CRM user data is missing from /user/me/pro response.');
       return false;
     }
@@ -270,6 +284,7 @@ export async function checkAuth() {
     useAuthStore.getState().setAuthenticatedUser(user);
     return true;
   } catch {
+    clearStoredAccessToken();
     useAuthStore.getState().clearSession('Unable to reach the CRM authentication service.');
     return false;
   }
