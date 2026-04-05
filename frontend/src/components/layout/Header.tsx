@@ -99,18 +99,18 @@ const Header = () => {
             </div>
             <nav className="p-4 space-y-2">
               <Link
-                href="/builder/templates"
-                className="block px-3 py-2 rounded-md text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Templates
-              </Link>
-              <Link
                 href="/dashboard"
                 className="block px-3 py-2 rounded-md text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F]"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                My Sites
+                Website Builder
+              </Link>
+              <Link
+                href="/dashboard?tab=landing-page-generator"
+                className="block px-3 py-2 rounded-md text-[#A1A1AA] hover:text-white hover:bg-[#1C1C1F]"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Landing Page Generator
               </Link>
               <Link
                 href="/settings"
