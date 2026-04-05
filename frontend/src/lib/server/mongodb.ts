@@ -27,4 +27,9 @@ export async function getSitesCollection() {
   return database.collection('sites');
 }
 
+export async function getLandingDomainsCollection(){
+  const database = await connectToDatabase();
+  return database.collection('landingDomains')
+}
+
 export default client;
