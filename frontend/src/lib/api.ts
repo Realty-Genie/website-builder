@@ -154,6 +154,33 @@ export const api = {
     me: () => fetchWithAuth('/auth?action=me'),
   },
 
+  leads: {
+    submitPublic: async (payload: {
+      realtorUserId: string;
+      leadType: string;
+      sourceTemplate: string;
+      sourcePage: string;
+      lead: Record<string, string>;
+      context?: Record<string, string>;
+    }) => {
+      const response = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await parseJson(response);
+
+      if (!response.ok) {
+        throw new Error(data?.error || 'Failed to submit lead');
+      }
+
+      return data;
+    },
+  },
+
   templates: {
     list: () => fetchWithAuth('/templates'),
     get: (id: string) => fetchWithAuth(`/templates?id=${id}`),
