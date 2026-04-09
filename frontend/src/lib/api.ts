@@ -186,6 +186,28 @@ export const api = {
     get: (id: string) => fetchWithAuth(`/templates?id=${id}`),
   },
 
+  landingPages: {
+    list: () => fetchWithAuth('/landing-page'),
+    create: (name: string) =>
+      fetchWithAuth('/landing-page', {
+        method: 'POST',
+        body: JSON.stringify({ name }),
+      }),
+    get: (id: string) => fetchWithAuth(`/landing-page/${id}`),
+    update: (id: string, data: Record<string, unknown>) =>
+      fetchWithAuth(`/landing-page/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
+    delete: (id: string) =>
+      fetchWithAuth(`/landing-page/${id}`, { method: 'DELETE' }),
+    generate: (prompt: string, currentWidgets: unknown[]) =>
+      fetchWithAuth('/landing-page/generate', {
+        method: 'POST',
+        body: JSON.stringify({ prompt, currentWidgets }),
+      }),
+  },
+
   sites: {
     list: () => fetchWithAuth('/sites'),
     get: (id: string) => fetchWithAuth(`/sites?id=${id}`),
