@@ -41,12 +41,57 @@ Each widget object must have:
   "data": { ...type-specific fields... }
 }
 
-Available widget types and their data fields:
+Available widget types and their exact data fields:
 
-title: { text: string, color: "#hex", alignment: "left"|"center"|"right", size: "sm"|"md"|"lg" }
-text: { text: string, color: "#hex", alignment: "left"|"center"|"right" }
-image: { imageUrl: "https://images.unsplash.com/...", alt: string, aspect: "wide"|"square"|"portrait" }
-gallery: { images: ["url1", "url2", "url3"] }
+hero: {
+  backgroundImage: "https://images.unsplash.com/...",
+  overlayOpacity: 0.45,          // 0 = transparent, 1 = fully dark
+  tagline: "SMALL CAPS TEXT",    // e.g. "TOP VANCOUVER REALTOR®"
+  title: "Big Headline",
+  subtitle: "Supporting text below the headline",
+  ctaText: "Button Label",
+  ctaColor: "#hex",
+  ctaTextColor: "#hex",
+  textAlign: "left" | "center"
+}
+
+agentBio: {
+  imageUrl: "https://images.unsplash.com/...",
+  name: "Agent Full Name",
+  title: "Job Title or Designation",
+  bio: "2-4 sentence bio paragraph",
+  ctaText: "Button Label",
+  ctaColor: "#hex",
+  ctaTextColor: "#hex",
+  backgroundColor: "#hex",
+  textColor: "#hex",
+  imagePosition: "left" | "right"
+}
+
+stats: {
+  backgroundColor: "#hex",
+  textColor: "#hex",
+  accentColor: "#hex",           // color for the number values
+  items: [
+    { value: "500+", label: "Homes Sold" },
+    { value: "15 Yrs", label: "Experience" }
+  ]
+}
+
+testimonials: {
+  title: "Section Heading",
+  backgroundColor: "#hex",
+  textColor: "#hex",
+  accentColor: "#hex",
+  items: [
+    { text: "Quote text here.", author: "Name", location: "City, State" }
+  ]
+}
+
+title: { text: string, color: "#hex", alignment: "left"|"center"|"right", size: "sm"|"md"|"lg", sectionBg?: "#hex" }
+text: { text: string, color: "#hex", alignment: "left"|"center"|"right", sectionBg?: "#hex" }
+image: { imageUrl: "https://images.unsplash.com/...", alt: string, aspect: "wide"|"square"|"portrait"|"fullwidth" }
+gallery: { images: ["url1", "url2", "url3"], sectionBg?: "#hex" }
 slideshow: { images: ["url1", "url2", "url3"], title: string }
 map: { title: string, address: string, embedUrl: "https://www.google.com/maps?q=City+Name&output=embed" }
 leadForm: { title: string, description: string, buttonLabel: string, disclaimer: string, backgroundColor: "#hex", textColor: "#hex", buttonColor: "#hex", buttonTextColor: "#hex" }
@@ -55,17 +100,20 @@ spacer: { height: 48 }
 embed: { title: string, html: string }
 
 Rules:
-- Generate 6-9 widgets for a complete page
-- Always start with a title widget
-- Always include at least one text widget and one leadForm widget at the end
-- Use real Unsplash real estate photo URLs: https://images.unsplash.com/photo-XXXXXXXX?auto=format&fit=crop&w=1400&q=80
-  Good real estate photo IDs: 1560518883-ce09059eeffa, 1512917774080-9991f1c4c750, 1600585154526-990dced4db0d,
-  1600596542815-ffad4c1539a9, 1568605114967-8130f3a36994, 1582407947304-d02f3fd16af4
-- Widget IDs must be unique, format: "type-xxxxxx" (6 random lowercase letters/numbers)
-- leadForm: dark background (#0f172a), white text, sky-blue button (#2f8fe5), white button text
-- Title color: #1a202c, Body text color: #4a5568
-- Add dividers or spacers between sections for visual breathing room
-- Make all text content specific and relevant to the plan — no placeholder text`,
+- Generate 5-8 widgets for a complete page
+- ALWAYS start with a "hero" widget — full-width image with headline and CTA button
+- ALWAYS include a "stats" widget to show credibility numbers
+- ALWAYS end with a "leadForm" widget
+- Include "agentBio" for agent-focused pages
+- Include "testimonials" for social proof
+- Use real Unsplash real estate photo URLs: https://images.unsplash.com/photo-XXXXXXXX?auto=format&fit=crop&w=1600&q=80
+  Good property photo IDs: 1600596542815-ffad4c1539a9, 1512917774080-9991f1c4c750, 1568605114967-8130f3a36994,
+  1486325212027-8081e485255e, 1560184897-ae75f418493e, 1605276374104-dee2a0ed3cd6
+  Good agent/person photo IDs: 1560250097-0b93528c311a, 1573496359142-b8d87734a5a2, 1472099645785-5658abf4ff4e
+- Widget IDs must be unique: format "type-xxxxxx" (6 random lowercase alphanumeric chars)
+- leadForm: use a dark background (#0f172a or #1a1a2e), white text, and a colored accent button
+- Make all text content specific to the user's request — no generic placeholder text
+- Alternate section background colors between white (#ffffff) and light tones (#f7fafc, #f8f5f0, #f0fff4) for visual rhythm`,
 });
 
 // POST /api/landing-page/generate

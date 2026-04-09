@@ -484,10 +484,361 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
             </div>
           )}
 
-          {/* Fallback for other widget types */}
-          {!["title","text","image","gallery","leadForm","divider","spacer","map"].includes(widget.type) && (
+          {/* ── HERO editor ────────────────────────────────────────── */}
+          {widget.type === "hero" && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Hero Section</p>
+              {/* Background image preview + change */}
+              <div className="relative overflow-hidden rounded-md border border-zinc-200">
+                <img
+                  src={widget.data.backgroundImage}
+                  alt="Hero background"
+                  className="aspect-video w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black" style={{ opacity: widget.data.overlayOpacity ?? 0.5 }} />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingImageId(widget.id);
+                    setNewImageUrl(widget.data.backgroundImage);
+                  }}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <span className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-zinc-800 shadow-lg opacity-0 group-hover:opacity-100 hover:opacity-100">
+                    Change Background
+                  </span>
+                </button>
+              </div>
+              {editingImageId === widget.id && (
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    autoFocus
+                    value={newImageUrl}
+                    onChange={(e) => setNewImageUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        updateWidget(widget.id, { backgroundImage: newImageUrl.trim() });
+                        setEditingImageId(null);
+                        setNewImageUrl("");
+                      }
+                    }}
+                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                    placeholder="Paste image URL..."
+                  />
+                  <button
+                    onClick={() => {
+                      updateWidget(widget.id, { backgroundImage: newImageUrl.trim() });
+                      setEditingImageId(null);
+                      setNewImageUrl("");
+                    }}
+                    className="rounded-md bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white"
+                  >
+                    Apply
+                  </button>
+                  <button
+                    onClick={() => { setEditingImageId(null); setNewImageUrl(""); }}
+                    className="rounded-md border border-zinc-200 px-3 py-1.5 text-xs text-zinc-500"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Tagline (small text above headline)</label>
+                <input
+                  value={widget.data.tagline}
+                  onChange={(e) => updateWidget(widget.id, { tagline: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  placeholder="e.g. TOP VANCOUVER REALTOR®"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Headline</label>
+                <input
+                  value={widget.data.title}
+                  onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Subtitle</label>
+                <input
+                  value={widget.data.subtitle}
+                  onChange={(e) => updateWidget(widget.id, { subtitle: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Button text</label>
+                <input
+                  value={widget.data.ctaText}
+                  onChange={(e) => updateWidget(widget.id, { ctaText: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Overlay darkness</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round((widget.data.overlayOpacity ?? 0.5) * 100)}
+                    onChange={(e) => updateWidget(widget.id, { overlayOpacity: Number(e.target.value) / 100 })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-32"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Button color</label>
+                  <input
+                    type="color"
+                    value={widget.data.ctaColor}
+                    onChange={(e) => updateWidget(widget.id, { ctaColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Text align</label>
+                  <div className="flex gap-1">
+                    {(["left", "center"] as const).map((a) => (
+                      <button
+                        key={a}
+                        onClick={(e) => { e.stopPropagation(); updateWidget(widget.id, { textAlign: a }); }}
+                        className={`rounded px-2 py-1 text-[10px] font-medium capitalize transition ${
+                          widget.data.textAlign === a ? "bg-sky-100 text-sky-700" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                        }`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── AGENT BIO editor ───────────────────────────────────── */}
+          {widget.type === "agentBio" && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Agent Bio</p>
+              <div className="flex gap-3 items-start">
+                <img
+                  src={widget.data.imageUrl}
+                  alt={widget.data.name}
+                  className="h-20 w-20 flex-shrink-0 rounded-md object-cover object-top"
+                />
+                <div className="flex-1 space-y-2">
+                  <input
+                    value={widget.data.name}
+                    onChange={(e) => updateWidget(widget.id, { name: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                    placeholder="Agent name..."
+                  />
+                  <input
+                    value={widget.data.title}
+                    onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                    placeholder="Designation / title..."
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Bio text</label>
+                <textarea
+                  value={widget.data.bio}
+                  onChange={(e) => updateWidget(widget.id, { bio: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  rows={3}
+                  className="w-full resize-y rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">CTA button text</label>
+                <input
+                  value={widget.data.ctaText}
+                  onChange={(e) => updateWidget(widget.id, { ctaText: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Background</label>
+                  <input type="color" value={widget.data.backgroundColor}
+                    onChange={(e) => updateWidget(widget.id, { backgroundColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Button color</label>
+                  <input type="color" value={widget.data.ctaColor}
+                    onChange={(e) => updateWidget(widget.id, { ctaColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Photo side</label>
+                  <div className="flex gap-1">
+                    {(["left", "right"] as const).map((pos) => (
+                      <button key={pos}
+                        onClick={(e) => { e.stopPropagation(); updateWidget(widget.id, { imagePosition: pos }); }}
+                        className={`rounded px-2 py-1 text-[10px] font-medium capitalize transition ${
+                          widget.data.imagePosition === pos ? "bg-sky-100 text-sky-700" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                        }`}
+                      >
+                        {pos}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── STATS editor ───────────────────────────────────────── */}
+          {widget.type === "stats" && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Stats Row</p>
+              <div className="flex gap-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Background</label>
+                  <input type="color" value={widget.data.backgroundColor}
+                    onChange={(e) => updateWidget(widget.id, { backgroundColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Number color</label>
+                  <input type="color" value={widget.data.accentColor}
+                    onChange={(e) => updateWidget(widget.id, { accentColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {(widget.data.items as { value: string; label: string }[]).map((stat, i) => (
+                  <div key={i} className="space-y-1 rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                    <input
+                      value={stat.value}
+                      onChange={(e) => {
+                        const updated = [...widget.data.items];
+                        updated[i] = { ...updated[i], value: e.target.value };
+                        updateWidget(widget.id, { items: updated });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-sm font-bold outline-none focus:border-sky-400"
+                      placeholder="500+"
+                    />
+                    <input
+                      value={stat.label}
+                      onChange={(e) => {
+                        const updated = [...widget.data.items];
+                        updated[i] = { ...updated[i], label: e.target.value };
+                        updateWidget(widget.id, { items: updated });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] outline-none focus:border-sky-400"
+                      placeholder="Homes Sold"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── TESTIMONIALS editor ────────────────────────────────── */}
+          {widget.type === "testimonials" && (
+            <div className="space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">Testimonials</p>
+              <div>
+                <label className="mb-1 block text-[10px] font-medium text-zinc-500">Section title</label>
+                <input
+                  value={widget.data.title}
+                  onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                />
+              </div>
+              <div className="flex gap-3">
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Background</label>
+                  <input type="color" value={widget.data.backgroundColor}
+                    onChange={(e) => updateWidget(widget.id, { backgroundColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Text color</label>
+                  <input type="color" value={widget.data.textColor}
+                    onChange={(e) => updateWidget(widget.id, { textColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-medium text-zinc-500">Accent color</label>
+                  <input type="color" value={widget.data.accentColor}
+                    onChange={(e) => updateWidget(widget.id, { accentColor: e.target.value })}
+                    onClick={(e) => e.stopPropagation()}
+                    className="h-8 w-14 cursor-pointer rounded border border-zinc-200" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                {(widget.data.items as { text: string; author: string; location?: string }[]).map((item, i) => (
+                  <div key={i} className="rounded-md border border-zinc-200 bg-zinc-50 p-3 space-y-1.5">
+                    <textarea
+                      value={item.text}
+                      onChange={(e) => {
+                        const updated = [...widget.data.items];
+                        updated[i] = { ...updated[i], text: e.target.value };
+                        updateWidget(widget.id, { items: updated });
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                      rows={2}
+                      className="w-full resize-none rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                      placeholder="Quote text..."
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        value={item.author}
+                        onChange={(e) => {
+                          const updated = [...widget.data.items];
+                          updated[i] = { ...updated[i], author: e.target.value };
+                          updateWidget(widget.id, { items: updated });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] font-semibold outline-none focus:border-sky-400"
+                        placeholder="Author name"
+                      />
+                      <input
+                        value={item.location || ""}
+                        onChange={(e) => {
+                          const updated = [...widget.data.items];
+                          updated[i] = { ...updated[i], location: e.target.value };
+                          updateWidget(widget.id, { items: updated });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] outline-none focus:border-sky-400"
+                        placeholder="City, State"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Fallback for unrecognized widget types */}
+          {!["title","text","image","gallery","leadForm","divider","spacer","map","hero","agentBio","stats","testimonials"].includes(widget.type) && (
             <div className="rounded-md bg-zinc-100 px-4 py-3 text-sm text-zinc-500">
-              <span className="font-medium">{widget.label}</span> — click AI to modify this widget
+              <span className="font-medium">{widget.label}</span> — use the AI tab to modify this widget
             </div>
           )}
         </div>

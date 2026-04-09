@@ -2,6 +2,9 @@
 
 import React, { useState, type ChangeEvent, type FormEvent } from "react";
 
+// ─── Lead Form ───────────────────────────────────────────────────────────────
+// Handles name/email/phone capture and sends to the CRM API.
+
 type LeadFormProps = {
   title: string;
   description: string;
@@ -11,7 +14,6 @@ type LeadFormProps = {
   textColor: string;
   buttonColor: string;
   buttonTextColor: string;
-  isNested?: boolean;
   realtorId: string;
 };
 
@@ -24,321 +26,475 @@ function LeadForm({
   textColor,
   buttonColor,
   buttonTextColor,
-  isNested,
   realtorId,
 }: LeadFormProps) {
-  const [formState, setFormState] = useState({ name: "", email: "", phone: "" });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
-  const [submitMessage, setSubmitMessage] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
 
-  const handleChange = (field: keyof typeof formState) => (event: ChangeEvent<HTMLInputElement>) => {
-    setFormState((current) => ({ ...current, [field]: event.target.value }));
-  };
+  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://realty-crm-web.vercel.app";
 
-  const CRM_API_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://realty-crm-web.vercel.app";
+  const update = (field: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) =>
+    setForm((f) => ({ ...f, [field]: e.target.value }));
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    setSubmitStatus("idle");
-    setSubmitMessage("");
-
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setStatus("loading");
     try {
-      const response = await fetch(`${CRM_API_URL}/api/v1/add/lead`, {
+      const res = await fetch(`${CRM_URL}/api/v1/add/lead`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           realtorUserId: realtorId,
           leadType: "contact",
-          sourceTemplate: "flagship-v1",
+          sourceTemplate: "landing-v2",
           sourcePage: typeof window !== "undefined" ? window.location.pathname : "/",
-          lead: {
-            name: formState.name,
-            email: formState.email,
-            phone: formState.phone,
-          },
+          lead: { name: form.name, email: form.email, phone: form.phone },
           context: {
             userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
             referrer: typeof document !== "undefined" ? document.referrer : "",
           },
         }),
       });
-
-      if (!response.ok) throw new Error("Failed to submit lead. Please try again.");
-
-      setSubmitStatus("success");
-      setSubmitMessage("Thanks! Your consultation request has been received.");
-      setFormState({ name: "", email: "", phone: "" });
-    } catch (error) {
-      setSubmitStatus("error");
-      setSubmitMessage(error instanceof Error ? error.message : "Something went wrong. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+      if (!res.ok) throw new Error("Submission failed. Please try again.");
+      setStatus("success");
+      setMessage("Thanks! We'll be in touch shortly.");
+      setForm({ name: "", email: "", phone: "" });
+    } catch (err) {
+      setStatus("error");
+      setMessage(err instanceof Error ? err.message : "Something went wrong.");
     }
-  };
+  }
 
   return (
-    <section className={`${isNested ? "py-2" : "px-6 py-16 sm:px-12 md:py-24"}`}>
-      <div
-        className={`grid gap-12 rounded-2xl border border-slate-100 p-10 shadow-xl ${isNested ? "grid-cols-1" : "lg:grid-cols-[0.9fr_1.1fr]"}`}
-        style={{ backgroundColor, color: textColor }}
-      >
-        <div className="flex flex-col justify-center space-y-6">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.24em] opacity-60">Lead capture</p>
-            <h2 className={`mt-4 ${isNested ? "text-2xl" : "text-4xl"} font-bold tracking-tight leading-tight`}>{title}</h2>
+    <section id="contact" style={{ backgroundColor }}>
+      <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="grid gap-12 lg:grid-cols-2" style={{ color: textColor }}>
+          {/* Left: copy */}
+          <div className="flex flex-col justify-center">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">Get Started</p>
+            <h2 className="mt-4 text-4xl font-bold leading-tight">{title}</h2>
+            <p className="mt-5 text-base leading-8 opacity-75">{description}</p>
           </div>
-          <p className="text-lg leading-relaxed opacity-80">{description}</p>
-          <div className="pt-4 border-t border-current/10">
-            <p className="text-xs font-medium opacity-50 uppercase tracking-widest">Powered by RealtyGenie CRM</p>
-          </div>
-        </div>
-        <div className="rounded-xl bg-white p-8 text-slate-900 shadow-inner">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className={`grid gap-5 ${isNested ? "grid-cols-1" : "sm:grid-cols-2"}`}>
-              <div className={`${isNested ? "" : "sm:col-span-2"}`}>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">Full Name</label>
+          {/* Right: form */}
+          <div className="rounded-xl bg-white p-8 text-slate-900 shadow-2xl">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Full Name</label>
                 <input
-                  className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none transition-all focus:border-sky-500 text-slate-900"
+                  required
+                  value={form.name}
+                  onChange={update("name")}
                   placeholder="Your Name"
-                  required
-                  value={formState.name}
-                  onChange={handleChange("name")}
+                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
                 />
               </div>
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">Email</label>
-                <input
-                  type="email"
-                  className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none transition-all focus:border-sky-500 text-slate-900"
-                  placeholder="email@example.com"
-                  required
-                  value={formState.email}
-                  onChange={handleChange("email")}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={update("email")}
+                    placeholder="you@email.com"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Phone</label>
+                  <input
+                    required
+                    value={form.phone}
+                    onChange={update("phone")}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-slate-400">Phone</label>
-                <input
-                  className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none transition-all focus:border-sky-500 text-slate-900"
-                  placeholder="+1 (555) 000-0000"
-                  required
-                  value={formState.phone}
-                  onChange={handleChange("phone")}
-                />
-              </div>
-            </div>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="mt-4 flex w-full items-center justify-center rounded-lg px-6 py-4 text-sm font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{ backgroundColor: buttonColor, color: buttonTextColor }}
-            >
-              {isSubmitting ? "Sending..." : buttonLabel}
-            </button>
-            {submitStatus === "success" && (
-              <p className="text-center text-xs font-semibold text-emerald-500 opacity-100 transition-opacity">{submitMessage}</p>
-            )}
-            {submitStatus === "error" && (
-              <p className="text-center text-xs font-semibold text-rose-500 opacity-100 transition-opacity">{submitMessage}</p>
-            )}
-            <p className="mt-6 text-center text-[11px] leading-relaxed text-slate-400">{disclaimer}</p>
-          </form>
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="mt-2 w-full rounded-lg px-6 py-4 text-sm font-bold uppercase tracking-wider shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:opacity-50"
+                style={{ backgroundColor: buttonColor, color: buttonTextColor }}
+              >
+                {status === "loading" ? "Sending..." : buttonLabel}
+              </button>
+              {status === "success" && <p className="text-center text-sm font-semibold text-emerald-500">{message}</p>}
+              {status === "error" && <p className="text-center text-sm font-semibold text-rose-500">{message}</p>}
+              <p className="text-center text-[11px] text-slate-400">{disclaimer}</p>
+            </form>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function alignmentClass(alignment: string) {
-  if (alignment === "left") return "text-left";
-  if (alignment === "right") return "text-right";
+// ─── Helper functions ─────────────────────────────────────────────────────────
+
+function align(a: string) {
+  if (a === "left") return "text-left";
+  if (a === "right") return "text-right";
   return "text-center";
 }
 
-function titleSizeClass(size: string) {
-  if (size === "sm") return "text-2xl sm:text-3xl";
-  if (size === "md") return "text-3xl sm:text-4xl";
+function titleSize(s: string) {
+  if (s === "sm") return "text-2xl sm:text-3xl";
+  if (s === "md") return "text-3xl sm:text-4xl";
   return "text-4xl sm:text-5xl";
 }
 
-function aspectClass(aspect: string) {
-  if (aspect === "square") return "aspect-square";
-  if (aspect === "portrait") return "aspect-[4/5]";
+function aspectClass(a: string) {
+  if (a === "square") return "aspect-square";
+  if (a === "portrait") return "aspect-[4/5]";
+  if (a === "fullwidth") return "aspect-[21/9]";
   return "aspect-[16/9]";
 }
 
-function getResponsiveGridClass(colCount: number) {
-  if (colCount === 1) return "grid-cols-1";
-  return "grid-cols-1 lg:grid-cols-12";
-}
-
-function getSpanClass(span: number) {
-  const spans: Record<number, string> = {
-    1: "lg:col-span-1",
-    2: "lg:col-span-2",
-    3: "lg:col-span-3",
-    4: "lg:col-span-4",
-    5: "lg:col-span-5",
-    6: "lg:col-span-6",
-    7: "lg:col-span-7",
-    8: "lg:col-span-8",
-    9: "lg:col-span-9",
-    10: "lg:col-span-10",
-    11: "lg:col-span-11",
-    12: "lg:col-span-12",
-  };
-  return spans[span] || "lg:col-span-6";
-}
+// ─── Main Renderer ────────────────────────────────────────────────────────────
 
 export function LandingRenderer({ widgets, realtorId }: { widgets: any[]; realtorId: string }) {
-  const renderWidget = (widget: any, isNested = false) => {
+  function renderWidget(widget: any): React.ReactNode {
     switch (widget.type) {
+
+      // ── Basic text/title widgets ──────────────────────────────
       case "title":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <h1
-              className={`${alignmentClass(widget.data.alignment)} ${titleSizeClass(widget.data.size)} font-semibold tracking-tight`}
-              style={{ color: widget.data.color }}
-            >
-              {widget.data.text}
-            </h1>
+          <section key={widget.id} style={{ backgroundColor: widget.data.sectionBg || "transparent" }}>
+            <div className="mx-auto max-w-6xl px-6 py-8">
+              <h1
+                className={`${align(widget.data.alignment)} ${titleSize(widget.data.size)} font-bold leading-tight`}
+                style={{ color: widget.data.color }}
+              >
+                {widget.data.text}
+              </h1>
+            </div>
           </section>
         );
+
       case "text":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <p
-              className={`${alignmentClass(widget.data.alignment)} text-base leading-8 sm:text-lg`}
-              style={{ color: widget.data.color }}
-            >
-              {widget.data.text}
-            </p>
+          <section key={widget.id} style={{ backgroundColor: widget.data.sectionBg || "transparent" }}>
+            <div className="mx-auto max-w-6xl px-6 py-4">
+              <p
+                className={`${align(widget.data.alignment)} text-base leading-8 sm:text-lg`}
+                style={{ color: widget.data.color }}
+              >
+                {widget.data.text}
+              </p>
+            </div>
           </section>
         );
+
+      // ── Image — full-width when aspect is "fullwidth", contained otherwise ──
       case "image":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div className={`${aspectClass(widget.data.aspect)} overflow-hidden rounded-sm border border-slate-200 bg-slate-100`}>
-              <img src={widget.data.imageUrl} alt={widget.data.alt} className="h-full w-full object-cover" />
-            </div>
+          <section key={widget.id}>
+            {widget.data.aspect === "fullwidth" ? (
+              <div className="aspect-[21/9] w-full overflow-hidden">
+                <img
+                  src={widget.data.imageUrl}
+                  alt={widget.data.alt}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="mx-auto max-w-6xl px-6 py-4">
+                <div className={`${aspectClass(widget.data.aspect)} overflow-hidden`}>
+                  <img
+                    src={widget.data.imageUrl}
+                    alt={widget.data.alt}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
           </section>
         );
+
+      // ── Gallery ───────────────────────────────────────────────
       case "gallery":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {widget.data.images?.map((image: string, index: number) => (
-                <div key={`${image}-${index}`} className="aspect-[4/3] overflow-hidden rounded-sm border border-slate-200 bg-slate-100">
-                  <img src={image} alt={`Gallery image ${index + 1}`} className="h-full w-full object-cover" />
-                </div>
-              ))}
-            </div>
-          </section>
-        );
-      case "slideshow":
-        return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div className="overflow-hidden rounded-sm border border-slate-200 bg-white">
-              <div className="border-b border-slate-200 px-5 py-3">
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">{widget.data.title}</p>
-              </div>
-              <div className="grid gap-3 p-4 sm:grid-cols-3">
-                {widget.data.images?.map((image: string, index: number) => (
-                  <div key={`${image}-${index}`} className="aspect-[16/10] overflow-hidden rounded-sm bg-slate-100">
-                    <img src={image} alt={`Slide ${index + 1}`} className="h-full w-full object-cover" />
+          <section key={widget.id} style={{ backgroundColor: widget.data.sectionBg || "transparent" }}>
+            <div className="mx-auto max-w-6xl px-6 py-8">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {widget.data.images?.map((url: string, i: number) => (
+                  <div key={i} className="aspect-[4/3] overflow-hidden">
+                    <img src={url} alt={`Gallery ${i + 1}`} className="h-full w-full object-cover" />
                   </div>
                 ))}
               </div>
             </div>
           </section>
         );
-      case "map":
+
+      // ── Slideshow ─────────────────────────────────────────────
+      case "slideshow":
         return (
-          <section className={`${isNested ? "py-2" : "px-6 py-16 sm:px-12 md:py-24"}`} key={widget.id}>
-            <div className={`grid gap-8 rounded-2xl border border-slate-100 bg-white p-8 shadow-md ${isNested ? "grid-cols-1" : "lg:grid-cols-[0.4fr_0.6fr]"}`}>
-              <div className="flex flex-col justify-center space-y-4">
-                <h3 className="text-2xl font-bold text-slate-900">{widget.data.title}</h3>
-                <p className="text-base leading-relaxed text-slate-500">{widget.data.address}</p>
-              </div>
-              <div className="min-h-[320px] overflow-hidden rounded-xl border border-slate-100 bg-slate-50 shadow-inner">
-                <iframe
-                  src={widget.data.embedUrl}
-                  width="100%"
-                  height="300"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+          <section key={widget.id} className="bg-white">
+            <div className="mx-auto max-w-6xl px-6 py-8">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-slate-500">{widget.data.title}</p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {widget.data.images?.map((url: string, i: number) => (
+                  <div key={i} className="aspect-[16/10] overflow-hidden">
+                    <img src={url} alt={`Slide ${i + 1}`} className="h-full w-full object-cover" />
+                  </div>
+                ))}
               </div>
             </div>
           </section>
         );
+
+      // ── Map ───────────────────────────────────────────────────
+      case "map":
+        return (
+          <section key={widget.id} className="bg-white">
+            <div className="mx-auto max-w-6xl px-6 py-16">
+              <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
+                <div className="flex flex-col justify-center">
+                  <h3 className="text-2xl font-bold text-slate-900">{widget.data.title}</h3>
+                  <p className="mt-3 text-slate-500">{widget.data.address}</p>
+                </div>
+                <div className="overflow-hidden rounded-lg" style={{ minHeight: 300 }}>
+                  <iframe
+                    src={widget.data.embedUrl}
+                    width="100%"
+                    height="300"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+
+      // ── Lead Form ─────────────────────────────────────────────
       case "leadForm":
         return (
-          <div key={widget.id}>
-            <LeadForm
-              title={widget.data.title}
-              description={widget.data.description}
-              disclaimer={widget.data.disclaimer}
-              buttonLabel={widget.data.buttonLabel}
-              backgroundColor={widget.data.backgroundColor}
-              textColor={widget.data.textColor}
-              buttonColor={widget.data.buttonColor}
-              buttonTextColor={widget.data.buttonTextColor}
-              isNested={isNested}
-              realtorId={realtorId}
-            />
-          </div>
+          <LeadForm
+            key={widget.id}
+            title={widget.data.title}
+            description={widget.data.description}
+            disclaimer={widget.data.disclaimer}
+            buttonLabel={widget.data.buttonLabel}
+            backgroundColor={widget.data.backgroundColor}
+            textColor={widget.data.textColor}
+            buttonColor={widget.data.buttonColor}
+            buttonTextColor={widget.data.buttonTextColor}
+            realtorId={realtorId}
+          />
         );
+
+      // ── Divider / Spacer ──────────────────────────────────────
       case "divider":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
+          <div key={widget.id} className="mx-auto max-w-6xl px-6">
             <div className="h-px w-full" style={{ backgroundColor: widget.data.color }} />
-          </section>
+          </div>
         );
+
       case "spacer":
-        return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div style={{ height: `${widget.data.height}px` }} />
-          </section>
-        );
+        return <div key={widget.id} style={{ height: widget.data.height }} />;
+
+      // ── Embed ─────────────────────────────────────────────────
       case "embed":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div className="overflow-hidden rounded-sm border border-slate-200 bg-white p-4">
-              <div className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">{widget.data.title}</div>
+          <section key={widget.id} className="bg-white">
+            <div className="mx-auto max-w-6xl px-6 py-8">
+              <p className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">{widget.data.title}</p>
               <div dangerouslySetInnerHTML={{ __html: widget.data.html }} />
             </div>
           </section>
         );
+
+      // ── Columns layout ────────────────────────────────────────
       case "columns":
         return (
-          <section className="px-4 sm:px-6" key={widget.id}>
-            <div className={`grid gap-4 md:gap-6 ${getResponsiveGridClass(widget.data.colCount)}`}>
-              {widget.data.items?.map((colItems: any[], idx: number) => {
-                const span = (widget.data.spans && widget.data.spans[idx]) || Math.floor(12 / widget.data.colCount);
-                return (
-                  <div key={idx} className={`flex flex-col gap-4 ${getSpanClass(span)}`}>
-                    {colItems.map((innerWidget) => renderWidget(innerWidget, true))}
-                  </div>
-                );
-              })}
+          <section
+            key={widget.id}
+            style={{ backgroundColor: widget.data.backgroundColor || "transparent" }}
+          >
+            <div className="mx-auto max-w-6xl px-6 py-8">
+              <div className={`grid gap-6 ${widget.data.colCount > 1 ? "lg:grid-cols-12" : ""}`}>
+                {widget.data.items?.map((col: any[], idx: number) => {
+                  const span = (widget.data.spans?.[idx]) || Math.floor(12 / widget.data.colCount);
+                  const spanClass: Record<number, string> = {
+                    1: "lg:col-span-1", 2: "lg:col-span-2", 3: "lg:col-span-3",
+                    4: "lg:col-span-4", 5: "lg:col-span-5", 6: "lg:col-span-6",
+                    7: "lg:col-span-7", 8: "lg:col-span-8", 9: "lg:col-span-9",
+                    10: "lg:col-span-10", 11: "lg:col-span-11", 12: "lg:col-span-12",
+                  };
+                  return (
+                    <div key={idx} className={`flex flex-col gap-4 ${spanClass[span] || "lg:col-span-6"}`}>
+                      {col.map((inner) => renderWidget(inner))}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
         );
+
+      // ── HERO — full-width image with overlay, headline, and CTA ──
+      case "hero":
+        return (
+          <section
+            key={widget.id}
+            className="relative flex min-h-[80vh] items-end overflow-hidden"
+          >
+            {/* Background image */}
+            <img
+              src={widget.data.backgroundImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            {/* Dark overlay */}
+            <div
+              className="absolute inset-0 bg-black"
+              style={{ opacity: widget.data.overlayOpacity ?? 0.5 }}
+            />
+            {/* Content */}
+            <div
+              className={`relative z-10 w-full px-6 pb-20 pt-32 ${widget.data.textAlign === "center" ? "text-center" : ""}`}
+            >
+              <div className={`mx-auto max-w-6xl ${widget.data.textAlign === "center" ? "flex flex-col items-center" : ""}`}>
+                {widget.data.tagline && (
+                  <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-white/60">
+                    {widget.data.tagline}
+                  </p>
+                )}
+                <h1 className="text-5xl font-bold leading-none text-white sm:text-7xl md:text-8xl">
+                  {widget.data.title}
+                </h1>
+                {widget.data.subtitle && (
+                  <p className="mt-6 max-w-xl text-lg text-white/75 sm:text-xl">
+                    {widget.data.subtitle}
+                  </p>
+                )}
+                <a
+                  href="#contact"
+                  className="mt-8 inline-block px-8 py-4 text-sm font-bold uppercase tracking-wider transition-all hover:brightness-110 active:scale-95"
+                  style={{ backgroundColor: widget.data.ctaColor || "#c9a84c", color: widget.data.ctaTextColor || "#000" }}
+                >
+                  {widget.data.ctaText || "Get in Touch"}
+                </a>
+              </div>
+            </div>
+          </section>
+        );
+
+      // ── AGENT BIO — photo + name + bio side by side ──────────
+      case "agentBio":
+        return (
+          <section
+            key={widget.id}
+            style={{ backgroundColor: widget.data.backgroundColor || "#fff", color: widget.data.textColor || "#1a1a1a" }}
+          >
+            <div className="mx-auto max-w-6xl px-6 py-20">
+              <div className={`flex flex-col gap-12 md:flex-row md:items-center ${widget.data.imagePosition === "right" ? "md:flex-row-reverse" : ""}`}>
+                {/* Photo */}
+                <div className="w-full flex-shrink-0 md:w-80">
+                  <img
+                    src={widget.data.imageUrl}
+                    alt={widget.data.name}
+                    className="h-96 w-full object-cover object-top md:h-[480px]"
+                  />
+                </div>
+                {/* Bio text */}
+                <div className="flex-1">
+                  <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">
+                    {widget.data.title}
+                  </p>
+                  <h2 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">
+                    {widget.data.name}
+                  </h2>
+                  <p className="mt-6 text-base leading-8 opacity-75 sm:text-lg">
+                    {widget.data.bio}
+                  </p>
+                  <a
+                    href="#contact"
+                    className="mt-8 inline-block border-b-2 border-current pb-1 text-sm font-bold uppercase tracking-wider transition-opacity hover:opacity-60"
+                  >
+                    {widget.data.ctaText || "Work With Me →"}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+
+      // ── STATS — row of big numbers ────────────────────────────
+      case "stats":
+        return (
+          <section
+            key={widget.id}
+            style={{ backgroundColor: widget.data.backgroundColor || "#0f172a", color: widget.data.textColor || "#fff" }}
+          >
+            <div className="mx-auto max-w-6xl px-6 py-16">
+              <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+                {widget.data.items?.map((stat: { value: string; label: string }, i: number) => (
+                  <div key={i} className="text-center">
+                    <p
+                      className="text-5xl font-bold sm:text-6xl"
+                      style={{ color: widget.data.accentColor || "#c9a84c" }}
+                    >
+                      {stat.value}
+                    </p>
+                    <p className="mt-2 text-xs font-semibold uppercase tracking-widest opacity-60">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+
+      // ── TESTIMONIALS — quote cards grid ──────────────────────
+      case "testimonials":
+        return (
+          <section
+            key={widget.id}
+            style={{ backgroundColor: widget.data.backgroundColor || "#1e293b", color: widget.data.textColor || "#fff" }}
+          >
+            <div className="mx-auto max-w-6xl px-6 py-20">
+              <div className="text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">What Clients Say</p>
+                <h2 className="mt-3 text-3xl font-bold sm:text-4xl">{widget.data.title}</h2>
+                <div className="mx-auto mt-4 h-0.5 w-12" style={{ backgroundColor: widget.data.accentColor || "#c9a84c" }} />
+              </div>
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {widget.data.items?.map((t: { text: string; author: string; location?: string }, i: number) => (
+                  <div key={i} className="rounded-sm border border-white/10 bg-white/5 p-6">
+                    <p
+                      className="text-2xl font-bold"
+                      style={{ color: widget.data.accentColor || "#c9a84c" }}
+                    >
+                      "
+                    </p>
+                    <p className="mt-2 text-sm leading-7 opacity-80">{t.text}</p>
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <p className="text-sm font-semibold">{t.author}</p>
+                      {t.location && <p className="text-xs opacity-50">{t.location}</p>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+
       default:
         return null;
     }
-  };
+  }
 
   return (
-    <main className="min-h-screen bg-[#f8fafc] text-slate-900">
-      <div className="mx-auto max-w-5xl bg-white shadow-2xl shadow-slate-200/50">
-        {widgets.map((w) => renderWidget(w))}
-      </div>
+    <main className="min-h-screen bg-white text-slate-900">
+      {widgets.map((w) => renderWidget(w))}
     </main>
   );
 }
