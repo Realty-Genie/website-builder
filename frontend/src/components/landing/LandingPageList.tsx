@@ -5,7 +5,7 @@ import { Loader2, Plus, FileText, Trash2, ExternalLink, Clock, Sparkles, X } fro
 import { api } from "@/lib/api";
 import { LANDING_TEMPLATES } from "./landingTemplates";
 import type { LandingPageSummary } from "@/types/domain";
-import { rootDomain } from "@/lib/utils";
+import { protocol, rootDomain } from "@/lib/utils";
 
 type Props = {
   onSelectPage: (id: string) => void;
@@ -159,7 +159,7 @@ export default function LandingPageList({ onSelectPage }: Props) {
 
                 {page.subdomain && (
                   <a
-                    href={`/landing/${page.subdomain}`}
+                    href={`${protocol}://${page.subdomain}.${rootDomain}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center justify-center rounded-md border border-zinc-700 bg-zinc-800 px-3 text-zinc-300 transition hover:bg-zinc-700"
