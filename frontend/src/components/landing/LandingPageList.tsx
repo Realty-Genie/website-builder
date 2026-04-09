@@ -5,6 +5,7 @@ import { Loader2, Plus, FileText, Trash2, ExternalLink, Clock, Sparkles, X } fro
 import { api } from "@/lib/api";
 import { LANDING_TEMPLATES } from "./landingTemplates";
 import type { LandingPageSummary } from "@/types/domain";
+import { rootDomain } from "@/lib/utils";
 
 type Props = {
   onSelectPage: (id: string) => void;
@@ -130,7 +131,7 @@ export default function LandingPageList({ onSelectPage }: Props) {
                 <div>
                   <h3 className="truncate text-sm font-semibold text-white">{page.name}</h3>
                   {page.subdomain ? (
-                    <p className="mt-0.5 text-xs text-sky-400">/landing/{page.subdomain}</p>
+                    <p className="mt-0.5 text-xs text-sky-400">{page.subdomain}.{rootDomain}</p>
                   ) : (
                     <p className="mt-0.5 text-xs text-zinc-600">Not deployed yet</p>
                   )}
