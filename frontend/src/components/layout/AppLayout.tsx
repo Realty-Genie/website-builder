@@ -23,7 +23,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       <Header />
       <main className="pt-14 min-h-screen">
         {hasPro ? <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(c => !c)} /> : null}
-        <div className={`mx-auto p-4 sm:p-6 lg:p-8 transition-all duration-200 ${isLandingPageGenerator ? contentPl : `max-w-8xl ${contentPl}`}`}>
+        {/* When the landing page editor is active we strip all padding so the
+            full-height editor can fill the space cleanly without negative-margin tricks.
+            Normal routes keep the max-width container and padding. */}
+        <div className={`transition-all duration-200 ${isLandingPageGenerator ? contentPl : `mx-auto max-w-8xl ${contentPl} p-4 sm:p-6 lg:p-8`}`}>
           {children}
         </div>
       </main>

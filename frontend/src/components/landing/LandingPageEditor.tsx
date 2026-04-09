@@ -212,9 +212,9 @@ export default function LandingPageEditor({ pageId, onBack }: Props) {
   // The full AI chat panel (history + input)
   const aiChatPanel = (
     <div className="flex h-full flex-col">
-      <div className="flex-1 overflow-y-auto px-3 py-4">
+      <div className="flex-1 overflow-y-auto px-3 py-2">
         {promptHistory.length === 0 && !isGenerating ? (
-          <div className="flex flex-col items-center py-8 text-center">
+          <div className="flex flex-col items-center py-4 text-center">
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800">
               <Sparkles className="h-5 w-5 text-zinc-400" />
             </div>
@@ -305,8 +305,8 @@ export default function LandingPageEditor({ pageId, onBack }: Props) {
 
   return (
     <div
-      className="-mx-4  sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8 flex flex-col"
-      style={{ height: "calc(100vh - 56px)" }}
+      className="flex flex-col"
+      style={{ height: "calc(100vh - 50px)" }}
     >
       {/* ── Top Bar ──────────────────────────────────────────── */}
       <div className="flex flex-shrink-0 items-center gap-2 border-b border-zinc-800 bg-zinc-900 px-3 py-2.5">

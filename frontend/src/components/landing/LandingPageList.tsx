@@ -71,7 +71,7 @@ export default function LandingPageList({ onSelectPage }: Props) {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between m-6">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-white sm:text-xl">
             Landing Pages

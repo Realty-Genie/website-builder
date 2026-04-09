@@ -39,7 +39,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-14 bg-[#141416] border-b border-[#2A2A2E] z-40">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-[#141416] border-b border-[#2A2A2E] z-40 mb-2">
         <div className="h-full px-5 flex items-center justify-between max-w-8xl mx-auto">
           <button
             className="lg:hidden p-2 -ml-2 text-[#A1A1AA] hover:text-white"
