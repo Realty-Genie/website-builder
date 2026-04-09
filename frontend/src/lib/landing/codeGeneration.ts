@@ -173,6 +173,95 @@ ${colItems.map((inner) => widgetMarkup(inner, true)).join("\n")}
         </div>
       </section>`;
     }
+
+    case "hero":
+      return `
+      <section className="relative flex min-h-[80vh] items-end overflow-hidden">
+        <img src="${escapeTemplateLiteral(widget.data.backgroundImage)}" alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-black" style={{ opacity: ${widget.data.overlayOpacity ?? 0.5} }} />
+        <div className="relative z-10 w-full px-6 pb-20 pt-32 ${widget.data.textAlign === "center" ? "text-center" : ""}">
+          <div className="mx-auto max-w-6xl ${widget.data.textAlign === "center" ? "flex flex-col items-center" : ""}">
+            ${widget.data.tagline ? `<p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-white/60">${escapeTemplateLiteral(widget.data.tagline)}</p>` : ""}
+            <h1 className="text-5xl font-bold leading-none text-white sm:text-7xl">${escapeTemplateLiteral(widget.data.title)}</h1>
+            ${widget.data.subtitle ? `<p className="mt-6 max-w-xl text-lg text-white/75 sm:text-xl">${escapeTemplateLiteral(widget.data.subtitle)}</p>` : ""}
+            <a href="#contact" className="mt-8 inline-block px-8 py-4 text-sm font-bold uppercase tracking-wider transition-all hover:brightness-110 active:scale-95" style={{ backgroundColor: '${escapeTemplateLiteral(widget.data.ctaColor)}', color: '${escapeTemplateLiteral(widget.data.ctaTextColor)}' }}>
+              ${escapeTemplateLiteral(widget.data.ctaText)}
+            </a>
+          </div>
+        </div>
+      </section>`;
+
+    case "agentBio":
+      return `
+      <section style={{ backgroundColor: '${escapeTemplateLiteral(widget.data.backgroundColor)}', color: '${escapeTemplateLiteral(widget.data.textColor)}' }}>
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="flex flex-col gap-12 md:flex-row md:items-center ${widget.data.imagePosition === "right" ? "md:flex-row-reverse" : ""}">
+            <div className="w-full flex-shrink-0 md:w-80">
+              <img src="${escapeTemplateLiteral(widget.data.imageUrl)}" alt="${escapeTemplateLiteral(widget.data.name)}" className="h-96 w-full object-cover object-top md:h-[480px]" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">${escapeTemplateLiteral(widget.data.title)}</p>
+              <h2 className="mt-3 text-4xl font-bold leading-tight sm:text-5xl">${escapeTemplateLiteral(widget.data.name)}</h2>
+              <p className="mt-6 text-base leading-8 opacity-75 sm:text-lg">${escapeTemplateLiteral(widget.data.bio)}</p>
+              <a href="#contact" className="mt-8 inline-block border-b-2 border-current pb-1 text-sm font-bold uppercase tracking-wider transition-opacity hover:opacity-60">
+                ${escapeTemplateLiteral(widget.data.ctaText)}
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>`;
+
+    case "stats": {
+      const statItems = widget.data.items
+        .map(
+          (item) => `
+              <div className="text-center">
+                <p className="text-5xl font-bold sm:text-6xl" style={{ color: '${escapeTemplateLiteral(widget.data.accentColor)}' }}>${escapeTemplateLiteral(item.value)}</p>
+                <p className="mt-2 text-xs font-semibold uppercase tracking-widest opacity-60">${escapeTemplateLiteral(item.label)}</p>
+              </div>`,
+        )
+        .join("\n");
+      return `
+      <section style={{ backgroundColor: '${escapeTemplateLiteral(widget.data.backgroundColor)}', color: '${escapeTemplateLiteral(widget.data.textColor)}' }}>
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            ${statItems}
+          </div>
+        </div>
+      </section>`;
+    }
+
+    case "testimonials": {
+      const testimonialItems = widget.data.items
+        .map(
+          (item) => `
+              <div className="rounded-sm border border-white/10 bg-white/5 p-6">
+                <p className="text-2xl font-bold" style={{ color: '${escapeTemplateLiteral(widget.data.accentColor)}' }}>"</p>
+                <p className="mt-2 text-sm leading-7 opacity-80">${escapeTemplateLiteral(item.text)}</p>
+                <div className="mt-4 border-t border-white/10 pt-4">
+                  <p className="text-sm font-semibold">${escapeTemplateLiteral(item.author)}</p>
+                  ${item.location ? `<p className="text-xs opacity-50">${escapeTemplateLiteral(item.location)}</p>` : ""}
+                </div>
+              </div>`,
+        )
+        .join("\n");
+      return `
+      <section style={{ backgroundColor: '${escapeTemplateLiteral(widget.data.backgroundColor)}', color: '${escapeTemplateLiteral(widget.data.textColor)}' }}>
+        <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="text-center">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] opacity-50">What Clients Say</p>
+            <h2 className="mt-3 text-3xl font-bold sm:text-4xl">${escapeTemplateLiteral(widget.data.title)}</h2>
+            <div className="mx-auto mt-4 h-0.5 w-12" style={{ backgroundColor: '${escapeTemplateLiteral(widget.data.accentColor)}' }} />
+          </div>
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            ${testimonialItems}
+          </div>
+        </div>
+      </section>`;
+    }
+
+    default:
+      return "";
   }
 }
 
