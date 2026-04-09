@@ -1,20 +1,23 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus, FileText, Trash2, ExternalLink, Clock, Sparkles } from "lucide-react";
+import { Loader2, Plus, FileText, Trash2, ExternalLink, Clock, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
+import { LANDING_TEMPLATES } from "./landingTemplates";
 import type { LandingPageSummary } from "@/types/domain";
 
 type Props = {
-  // Called when the user opens a landing page to edit it
   onSelectPage: (id: string) => void;
 };
 
 export default function LandingPageList({ onSelectPage }: Props) {
   const [pages, setPages] = useState<LandingPageSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Template picker modal state
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+  const [creatingTemplateId, setCreatingTemplateId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPages();
@@ -32,16 +35,21 @@ export default function LandingPageList({ onSelectPage }: Props) {
     }
   }
 
-  async function createNewPage() {
-    setCreating(true);
+  // Creates a new landing page from a chosen template and opens it in the editor
+  async function createFromTemplate(templateId: string) {
+    setCreatingTemplateId(templateId);
     try {
-      const data = await api.landingPages.create("Untitled Landing Page");
-      // Open the new page directly in the editor
+      const template = LANDING_TEMPLATES.find((t) => t.id === templateId);
+      const name = template ? `${template.name} Landing Page` : "Untitled Landing Page";
+      const widgets = template?.widgets || [];
+
+      const data = await api.landingPages.create(name, widgets);
+      setShowTemplatePicker(false);
       onSelectPage(data.id);
     } catch (error) {
       console.error("Failed to create page:", error);
     } finally {
-      setCreating(false);
+      setCreatingTemplateId(null);
     }
   }
 
@@ -74,20 +82,15 @@ export default function LandingPageList({ onSelectPage }: Props) {
         </div>
 
         <button
-          onClick={createNewPage}
-          disabled={creating}
-          className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:opacity-50 sm:w-auto w-full justify-center"
+          onClick={() => setShowTemplatePicker(true)}
+          className="flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-600 sm:w-auto w-full justify-center"
         >
-          {creating ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Plus className="h-4 w-4" />
-          )}
+          <Plus className="h-4 w-4" />
           New Landing Page
         </button>
       </div>
 
-      {/* Content */}
+      {/* Page list */}
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="h-6 w-6 animate-spin text-zinc-500" />
@@ -100,15 +103,13 @@ export default function LandingPageList({ onSelectPage }: Props) {
           </div>
           <h3 className="text-base font-medium text-white">No landing pages yet</h3>
           <p className="mt-1.5 max-w-sm text-sm text-zinc-500">
-            Create your first AI-powered landing page. Just describe what you want and the AI
-            builds it for you.
+            Create your first AI-powered landing page. Pick a template and refine it with the AI.
           </p>
           <button
-            onClick={createNewPage}
-            disabled={creating}
-            className="mt-6 flex items-center gap-2 rounded-lg bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600 disabled:opacity-50"
+            onClick={() => setShowTemplatePicker(true)}
+            className="mt-6 flex items-center gap-2 rounded-lg bg-sky-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-600"
           >
-            {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            <Plus className="h-4 w-4" />
             Create Landing Page
           </button>
         </div>
@@ -131,7 +132,7 @@ export default function LandingPageList({ onSelectPage }: Props) {
                   {page.subdomain ? (
                     <p className="mt-0.5 text-xs text-sky-400">/landing/{page.subdomain}</p>
                   ) : (
-                    <p className="mt-0.5 text-xs text-zinc-600">No subdomain set</p>
+                    <p className="mt-0.5 text-xs text-zinc-600">Not deployed yet</p>
                   )}
                 </div>
 
@@ -182,6 +183,61 @@ export default function LandingPageList({ onSelectPage }: Props) {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Template Picker Modal ──────────────────────────────── */}
+      {showTemplatePicker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-xl border border-zinc-700 bg-zinc-900 shadow-2xl">
+            {/* Modal header */}
+            <div className="flex items-center justify-between border-b border-zinc-800 px-6 py-4">
+              <div>
+                <h2 className="text-base font-bold text-white">Choose a Starting Template</h2>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Pick a template, then customize it with AI or the visual editor.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowTemplatePicker(false)}
+                className="rounded-md p-1.5 text-zinc-500 transition hover:bg-zinc-800 hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Template grid */}
+            <div className="grid grid-cols-1 gap-3 p-6 sm:grid-cols-2">
+              {LANDING_TEMPLATES.map((template) => {
+                const isCreating = creatingTemplateId === template.id;
+                return (
+                  <button
+                    key={template.id}
+                    onClick={() => createFromTemplate(template.id)}
+                    disabled={creatingTemplateId !== null}
+                    className="flex items-start gap-3 rounded-lg border border-zinc-700 bg-zinc-800/60 p-4 text-left transition hover:border-zinc-600 hover:bg-zinc-800 disabled:opacity-60"
+                  >
+                    {/* Emoji icon */}
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-zinc-700 text-xl">
+                      {template.emoji}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-white">{template.name}</p>
+                        {isCreating && <Loader2 className="h-3.5 w-3.5 animate-spin text-sky-400" />}
+                      </div>
+                      <p className="mt-0.5 text-xs text-zinc-500">{template.description}</p>
+                      {template.widgets.length > 0 && (
+                        <p className="mt-1.5 text-[10px] text-zinc-600">
+                          {template.widgets.length} widgets included
+                        </p>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>

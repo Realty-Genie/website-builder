@@ -46,6 +46,8 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}));
   const name = typeof body.name === "string" ? body.name : "Untitled Landing Page";
+  // Allow passing initial widgets (e.g. from a template) when creating a page
+  const initialWidgets = Array.isArray(body.widgets) ? body.widgets : [];
 
   const collection = await getLandingDomainsCollection();
   const id = makeLandingPageId();
@@ -56,7 +58,7 @@ export async function POST(request: NextRequest) {
     realtorId: auth.user.id,
     name,
     subdomain: "",
-    widgets: [],
+    widgets: initialWidgets,
     code: "",
     promptHistory: [],
     createdAt: now,

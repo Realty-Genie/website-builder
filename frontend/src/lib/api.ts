@@ -188,10 +188,10 @@ export const api = {
 
   landingPages: {
     list: () => fetchWithAuth('/landing-page'),
-    create: (name: string) =>
+    create: (name: string, widgets?: unknown[]) =>
       fetchWithAuth('/landing-page', {
         method: 'POST',
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, widgets }),
       }),
     get: (id: string) => fetchWithAuth(`/landing-page/${id}`),
     update: (id: string, data: Record<string, unknown>) =>

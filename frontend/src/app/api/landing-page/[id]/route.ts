@@ -47,6 +47,21 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   if (body.promptHistory !== undefined) updateFields.promptHistory = body.promptHistory;
 
   const collection = await getLandingDomainsCollection();
+
+  // If a subdomain is being set, make sure no other page already uses it
+  if (body.subdomain !== undefined && body.subdomain !== "") {
+    const conflict = await collection.findOne({
+      subdomain: body.subdomain,
+      id: { $ne: id }, // exclude the current page
+    });
+    if (conflict) {
+      return NextResponse.json(
+        { error: `The subdomain "${body.subdomain}" is already taken. Please choose another.` },
+        { status: 409 },
+      );
+    }
+  }
+
   const result = await collection.updateOne(
     { id, realtorId: auth.user.id },
     { $set: updateFields },

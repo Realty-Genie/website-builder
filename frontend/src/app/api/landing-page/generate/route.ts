@@ -1,16 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Agent, run } from "@openai/agents";
 import { getCrmAuth } from "@/lib/server/auth";
 
-// System prompt that tells the AI exactly what format to return
-const SYSTEM_PROMPT = `You are a professional landing page designer for real estate agents.
-Your job is to generate landing page widget arrays based on user prompts.
+// ── Agent 1: Planner ───────────────────────────────────────
+// The Planner reads the user's request and writes a clear content plan.
+// It tells the Builder exactly what sections, tone, and content to include.
+const plannerAgent = new Agent({
+  name: "Landing Page Planner",
+  model: "gpt-4o",
+  instructions: `You are a real estate marketing strategist.
+
+Given a user's request for a landing page, write a short structured plan that covers:
+1. Page purpose and target audience
+2. Sections needed (e.g. hero headline, property highlights, gallery, lead form)
+3. Tone and style (e.g. luxury, friendly, professional, urgent)
+4. Key content points for each section (headlines, bullet points, CTA text)
+
+Write the plan in plain text. Be specific. The Builder agent will use your plan to generate the page.`,
+});
+
+// ── Agent 2: Builder ───────────────────────────────────────
+// The Builder receives the Planner's output and generates the widget JSON.
+const builderAgent = new Agent({
+  name: "Landing Page Builder",
+  model: "gpt-4o",
+  instructions: `You are a landing page builder for real estate agents.
+
+You receive a content plan and generate landing page widgets as JSON.
 
 Return ONLY a valid JSON object in this exact format:
 {
   "widgets": [ ...array of widget objects... ]
 }
 
-Each widget object must have these fields:
+Each widget object must have:
 {
   "id": "unique-id-string",
   "type": "widget_type",
@@ -31,20 +54,22 @@ divider: { color: "#hex" }
 spacer: { height: 48 }
 embed: { title: string, html: string }
 
-Generation rules:
-- Generate 5-8 widgets for a complete landing page
+Rules:
+- Generate 6-9 widgets for a complete page
 - Always start with a title widget
-- Always include at least one text widget and one leadForm widget
-- Use realistic Unsplash image URLs: https://images.unsplash.com/photo-XXXXXXXX?auto=format&fit=crop&w=1400&q=80
-- For real estate images, use IDs like: 1560518883-ce09059eeffa, 1512917774080-9991f1c4c750, 1600585154526-990dced4db0d
-- Make widget IDs unique using this format: "type-xxxxxx" (6 random chars)
-- For leadForm: use dark background (#0f172a), white text (#ffffff), sky blue button (#2f8fe5), white button text (#ffffff)
-- Make all text content specific and relevant to the user's prompt
-- Title color: #28323b, Text color: #5e6973
-- Add dividers or spacers between sections for visual breathing room`;
+- Always include at least one text widget and one leadForm widget at the end
+- Use real Unsplash real estate photo URLs: https://images.unsplash.com/photo-XXXXXXXX?auto=format&fit=crop&w=1400&q=80
+  Good real estate photo IDs: 1560518883-ce09059eeffa, 1512917774080-9991f1c4c750, 1600585154526-990dced4db0d,
+  1600596542815-ffad4c1539a9, 1568605114967-8130f3a36994, 1582407947304-d02f3fd16af4
+- Widget IDs must be unique, format: "type-xxxxxx" (6 random lowercase letters/numbers)
+- leadForm: dark background (#0f172a), white text, sky-blue button (#2f8fe5), white button text
+- Title color: #1a202c, Body text color: #4a5568
+- Add dividers or spacers between sections for visual breathing room
+- Make all text content specific and relevant to the plan — no placeholder text`,
+});
 
 // POST /api/landing-page/generate
-// Calls OpenAI to generate or update landing page widgets based on a user prompt
+// Uses a two-agent pipeline: Planner → Builder
 export async function POST(request: NextRequest) {
   const auth = await getCrmAuth(request);
   if (!auth.ok) {
@@ -58,73 +83,90 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A prompt is required" }, { status: 400 });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
+  if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 500 });
   }
 
-  // If there are existing widgets, ask AI to modify the page; otherwise generate from scratch
+  // The OpenAI Agents SDK reads OPENAI_API_KEY from the environment automatically
   const hasExistingPage = Array.isArray(currentWidgets) && currentWidgets.length > 0;
-  const userMessage = hasExistingPage
-    ? `Current landing page widgets:\n${JSON.stringify(currentWidgets, null, 2)}\n\nUser request: ${prompt.trim()}\n\nModify the existing page based on the request. Keep sections that don't need to change. Return the complete updated widgets array.`
-    : `Create a landing page for: ${prompt.trim()}`;
 
   try {
-    const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userMessage },
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.7,
-      }),
-    });
+    let widgets: unknown[];
 
-    if (!openaiResponse.ok) {
-      const errorText = await openaiResponse.text();
-      console.error("OpenAI API error:", errorText);
-      return NextResponse.json({ error: "AI generation failed" }, { status: 500 });
+    if (hasExistingPage) {
+      // For modifications, skip the planner and go straight to the builder.
+      // The user is already looking at a page and wants specific changes.
+      const modifyMessage = `
+Current landing page widgets (JSON):
+${JSON.stringify(currentWidgets, null, 2)}
+
+User's modification request: ${prompt.trim()}
+
+Modify the existing page based on the request. Keep sections that don't need changing.
+Return the complete updated widgets array as JSON.`.trim();
+
+      const buildResult = await run(builderAgent, modifyMessage);
+      const jsonString = buildResult.finalOutput as string;
+      widgets = extractWidgets(jsonString);
+    } else {
+      // For new pages, use the full Planner → Builder pipeline.
+
+      // Step 1: Planner writes a content plan
+      const planResult = await run(plannerAgent, `Create a landing page for: ${prompt.trim()}`);
+      const plan = planResult.finalOutput as string;
+
+      // Step 2: Builder generates widget JSON from the plan
+      const buildMessage = `
+Content plan for the landing page:
+${plan}
+
+Generate the widget JSON for this landing page.`.trim();
+
+      const buildResult = await run(builderAgent, buildMessage);
+      const jsonString = buildResult.finalOutput as string;
+      widgets = extractWidgets(jsonString);
     }
 
-    const openaiData = await openaiResponse.json();
-    const content = openaiData.choices?.[0]?.message?.content;
-
-    if (!content) {
-      return NextResponse.json({ error: "No response from AI" }, { status: 500 });
-    }
-
-    // Parse the JSON response from OpenAI
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      console.error("Failed to parse OpenAI JSON:", content);
-      return NextResponse.json({ error: "Invalid AI response format" }, { status: 500 });
-    }
-
-    // Extract the widgets array from the response
-    // OpenAI might return { widgets: [...] } or just an object with a widgets key
-    if (
-      typeof parsed !== "object" ||
-      parsed === null ||
-      !("widgets" in parsed) ||
-      !Array.isArray((parsed as { widgets: unknown }).widgets)
-    ) {
-      console.error("Unexpected AI response structure:", parsed);
-      return NextResponse.json({ error: "AI returned unexpected format" }, { status: 500 });
-    }
-
-    const widgets = (parsed as { widgets: unknown[] }).widgets;
     return NextResponse.json({ widgets });
   } catch (error) {
     console.error("Generation error:", error);
-    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong generating the page. Please try again." },
+      { status: 500 },
+    );
   }
+}
+
+// Extracts the widgets array from a JSON string.
+// Handles cases where the model wraps the JSON in markdown code fences.
+function extractWidgets(text: string): unknown[] {
+  // Strip markdown code fences if present
+  const cleaned = text
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    // Try to find a JSON object inside the text
+    const match = cleaned.match(/\{[\s\S]*\}/);
+    if (match) {
+      parsed = JSON.parse(match[0]);
+    } else {
+      throw new Error("Could not parse JSON from AI response");
+    }
+  }
+
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !("widgets" in parsed) ||
+    !Array.isArray((parsed as { widgets: unknown }).widgets)
+  ) {
+    throw new Error("AI returned unexpected format — missing widgets array");
+  }
+
+  return (parsed as { widgets: unknown[] }).widgets;
 }
