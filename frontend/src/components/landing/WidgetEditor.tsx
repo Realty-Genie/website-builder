@@ -18,7 +18,9 @@ import {
   Move,
   Layout,
   FileInput,
+  X,
 } from "lucide-react";
+import { DEFAULT_LEAD_FORM_FIELDS, type LeadFormField, type LeadFormFieldType } from "@/types/widgets";
 
 // ─── Type helpers ─────────────────────────────────────────────────────────────
 
@@ -65,6 +67,7 @@ function makeWidget(type: string): Widget {
           textColor: "#ffffff",
           buttonColor: "#2f8fe5",
           buttonTextColor: "#ffffff",
+          fields: DEFAULT_LEAD_FORM_FIELDS.map((f) => ({ ...f })),
         },
       };
     case "gallery":
@@ -407,6 +410,99 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-sky-400"
                 />
               </div>
+
+              {/* ── Form fields editor ───────────────────────────────── */}
+              <div className="rounded-md border border-zinc-200 bg-white p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">Form Fields</p>
+                    <p className="text-[10px] text-zinc-400">Edit, add, or remove inputs shown to visitors</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const existing: LeadFormField[] = widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS;
+                      const nextId = `field_${Date.now().toString(36)}`;
+                      updateWidget(widget.id, {
+                        fields: [
+                          ...existing,
+                          { id: nextId, label: "New Field", type: "text" as LeadFormFieldType, placeholder: "", required: false },
+                        ],
+                      });
+                    }}
+                    className="flex items-center gap-1 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-1 text-[10px] font-medium text-zinc-600 hover:bg-zinc-100"
+                  >
+                    <Plus className="h-3 w-3" /> Add
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS).map((field: LeadFormField, idx: number) => {
+                    const fields: LeadFormField[] = widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS;
+                    const patchField = (patch: Partial<LeadFormField>) => {
+                      const next = fields.map((f, i) => (i === idx ? { ...f, ...patch } : f));
+                      updateWidget(widget.id, { fields: next });
+                    };
+                    const removeField = () => {
+                      const next = fields.filter((_, i) => i !== idx);
+                      updateWidget(widget.id, { fields: next });
+                    };
+                    return (
+                      <div key={field.id} className="rounded-md border border-zinc-200 bg-zinc-50 p-2">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1 space-y-1.5">
+                            <input
+                              value={field.label}
+                              onChange={(e) => patchField({ label: e.target.value })}
+                              onClick={(e) => e.stopPropagation()}
+                              placeholder="Label"
+                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                            />
+                            <input
+                              value={field.placeholder ?? ""}
+                              onChange={(e) => patchField({ placeholder: e.target.value })}
+                              onClick={(e) => e.stopPropagation()}
+                              placeholder="Placeholder (optional)"
+                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                            />
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={field.type}
+                                onChange={(e) => patchField({ type: e.target.value as LeadFormFieldType })}
+                                onClick={(e) => e.stopPropagation()}
+                                className="rounded border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-sky-400"
+                              >
+                                <option value="text">Text</option>
+                                <option value="email">Email</option>
+                                <option value="tel">Phone</option>
+                                <option value="textarea">Textarea</option>
+                              </select>
+                              <label className="flex items-center gap-1 text-[11px] text-zinc-500">
+                                <input
+                                  type="checkbox"
+                                  checked={!!field.required}
+                                  onChange={(e) => patchField({ required: e.target.checked })}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                                Required
+                              </label>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); removeField(); }}
+                            className="flex h-6 w-6 items-center justify-center rounded text-zinc-400 hover:bg-red-50 hover:text-red-500"
+                            aria-label="Remove field"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex gap-3">
                 <div>
                   <label className="mb-1 block text-[10px] font-medium text-zinc-500">Background</label>

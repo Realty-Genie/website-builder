@@ -57,6 +57,22 @@ export type MapWidgetData = {
   embedUrl: string;
 };
 
+export type LeadFormFieldType = "text" | "email" | "tel" | "textarea";
+
+export type LeadFormField = {
+  id: string;
+  label: string;
+  type: LeadFormFieldType;
+  placeholder?: string;
+  required?: boolean;
+};
+
+export const DEFAULT_LEAD_FORM_FIELDS: LeadFormField[] = [
+  { id: "name", label: "Full Name", type: "text", placeholder: "Your Name", required: true },
+  { id: "email", label: "Email", type: "email", placeholder: "you@email.com", required: true },
+  { id: "phone", label: "Phone", type: "tel", placeholder: "+1 (555) 000-0000", required: true },
+];
+
 export type LeadFormWidgetData = {
   title: string;
   description: string;
@@ -66,6 +82,7 @@ export type LeadFormWidgetData = {
   textColor: string;
   buttonColor: string;
   buttonTextColor: string;
+  fields?: LeadFormField[];
 };
 
 export type DividerWidgetData = {

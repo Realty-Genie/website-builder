@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, type ChangeEvent, type FormEvent } from "react";
+import React, { useState, type FormEvent } from "react";
+import { DEFAULT_LEAD_FORM_FIELDS, type LeadFormField } from "@/types/widgets";
 
 // ─── Lead Form ───────────────────────────────────────────────────────────────
-// Handles name/email/phone capture and sends to the CRM API.
+// Handles configurable field capture and sends to the CRM API.
 
 type LeadFormProps = {
   title: string;
@@ -15,7 +16,10 @@ type LeadFormProps = {
   buttonColor: string;
   buttonTextColor: string;
   realtorId: string;
+  fields?: LeadFormField[];
 };
+
+const RESERVED_LEAD_IDS = new Set(["name", "email", "phone"]);
 
 function LeadForm({
   title,
@@ -27,20 +31,33 @@ function LeadForm({
   buttonColor,
   buttonTextColor,
   realtorId,
+  fields,
 }: LeadFormProps) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "" });
+  const activeFields = fields && fields.length > 0 ? fields : DEFAULT_LEAD_FORM_FIELDS;
+  const [values, setValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(activeFields.map((f) => [f.id, ""])),
+  );
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
   const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://realty-crm-web.vercel.app";
 
-  const update = (field: keyof typeof form) => (e: ChangeEvent<HTMLInputElement>) =>
-    setForm((f) => ({ ...f, [field]: e.target.value }));
+  const update = (id: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+    setValues((v) => ({ ...v, [id]: e.target.value }));
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("loading");
     try {
+      const lead: Record<string, string> = {};
+      const customFields: Record<string, string> = {};
+      activeFields.forEach((f) => {
+        const val = (values[f.id] ?? "").trim();
+        if (!val) return;
+        if (RESERVED_LEAD_IDS.has(f.id)) lead[f.id] = val;
+        else customFields[f.id] = val;
+      });
+
       const res = await fetch(`${CRM_URL}/api/v1/add/lead`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,22 +66,26 @@ function LeadForm({
           leadType: "contact",
           sourceTemplate: "landing-v2",
           sourcePage: typeof window !== "undefined" ? window.location.pathname : "/",
-          lead: { name: form.name, email: form.email, phone: form.phone },
+          lead,
           context: {
             userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
             referrer: typeof document !== "undefined" ? document.referrer : "",
+            customFields,
           },
         }),
       });
       if (!res.ok) throw new Error("Submission failed. Please try again.");
       setStatus("success");
       setMessage("Thanks! We'll be in touch shortly.");
-      setForm({ name: "", email: "", phone: "" });
+      setValues(Object.fromEntries(activeFields.map((f) => [f.id, ""])));
     } catch (err) {
       setStatus("error");
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
     }
   }
+
+  const inputClass =
+    "w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors";
 
   return (
     <section id="contact" style={{ backgroundColor }}>
@@ -79,39 +100,32 @@ function LeadForm({
           {/* Right: form */}
           <div className="rounded-xl bg-white p-8 text-slate-900 shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Full Name</label>
-                <input
-                  required
-                  value={form.name}
-                  onChange={update("name")}
-                  placeholder="Your Name"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Email</label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={update("email")}
-                    placeholder="you@email.com"
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
-                  />
+              {activeFields.map((f) => (
+                <div key={f.id}>
+                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    {f.label}
+                  </label>
+                  {f.type === "textarea" ? (
+                    <textarea
+                      required={f.required}
+                      value={values[f.id] ?? ""}
+                      onChange={update(f.id)}
+                      placeholder={f.placeholder}
+                      rows={3}
+                      className={inputClass + " resize-none"}
+                    />
+                  ) : (
+                    <input
+                      type={f.type}
+                      required={f.required}
+                      value={values[f.id] ?? ""}
+                      onChange={update(f.id)}
+                      placeholder={f.placeholder}
+                      className={inputClass}
+                    />
+                  )}
                 </div>
-                <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">Phone</label>
-                  <input
-                    required
-                    value={form.phone}
-                    onChange={update("phone")}
-                    placeholder="+1 (555) 000-0000"
-                    className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
-                  />
-                </div>
-              </div>
+              ))}
               <button
                 type="submit"
                 disabled={status === "loading"}
@@ -284,6 +298,7 @@ export function LandingRenderer({ widgets, realtorId }: { widgets: any[]; realto
             textColor={widget.data.textColor}
             buttonColor={widget.data.buttonColor}
             buttonTextColor={widget.data.buttonTextColor}
+            fields={widget.data.fields}
             realtorId={realtorId}
           />
         );

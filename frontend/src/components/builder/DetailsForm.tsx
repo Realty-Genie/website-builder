@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
-import { ArrowLeft, ArrowRight, Loader2, Check, Upload, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Check, Upload, X, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -34,6 +34,7 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isBuilding, setIsBuilding] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [customFields, setCustomFields] = useState<Array<{ id: string; label: string; value: string }>>([]);
 
   const fileInputElements = useRef<Record<string, HTMLInputElement>>({});
 
@@ -56,6 +57,17 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
       if (siteData.details.agentPhoto) {
         setExistingImages({ agentPhoto: siteData.details.agentPhoto });
       }
+      const extras: Array<{ id: string; label: string; value: string }> = [];
+      Object.entries(siteData.details).forEach(([k, v]) => {
+        if (k.startsWith('custom_')) {
+          extras.push({
+            id: k,
+            label: k.replace(/^custom_/, '').replace(/_/g, ' '),
+            value: v,
+          });
+        }
+      });
+      if (extras.length) setCustomFields(extras);
     }
   }, [editMode, siteData]);
 
@@ -67,12 +79,11 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
       ];
     }
     const required = template.formSchema.filter(f => f.required);
-    const fileFields = template.formSchema.filter(f => f.type === 'file');
-    const allShown = [...required, ...fileFields];
+    const optional = template.formSchema.filter(f => !f.required);
 
     return [
-      { label: 'Basic', fields: allShown.slice(0, Math.ceil(allShown.length / 2)) },
-      { label: 'Content', fields: allShown.slice(Math.ceil(allShown.length / 2)) },
+      { label: 'Required', fields: required },
+      { label: 'Optional Details', fields: optional },
     ];
   }, [template, editMode]);
 
@@ -157,18 +168,47 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
     return Object.keys(newErrors).length === 0;
   };
 
+  /* ---------------- CUSTOM FIELDS ---------------- */
+  const slugify = (s: string) =>
+    s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+
+  const addCustomField = () => {
+    setCustomFields(prev => [
+      ...prev,
+      { id: `cf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`, label: '', value: '' },
+    ]);
+  };
+
+  const updateCustomField = (id: string, patch: Partial<{ label: string; value: string }>) => {
+    setCustomFields(prev => prev.map(f => (f.id === id ? { ...f, ...patch } : f)));
+  };
+
+  const removeCustomField = (id: string) => {
+    setCustomFields(prev => prev.filter(f => f.id !== id));
+  };
+
+  const buildPayload = (): Record<string, string> => {
+    const payload: Record<string, string> = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key.startsWith('custom_')) return;
+      if (value && value.trim()) payload[key] = value;
+    });
+    customFields.forEach(({ label, value }) => {
+      const slug = slugify(label);
+      if (slug && value.trim()) {
+        payload[`custom_${slug}`] = value;
+      }
+    });
+    return payload;
+  };
+
   /* ---------------- SUBMIT ---------------- */
   const handleSubmit = async () => {
     setIsBuilding(true);
 
     try {
       if (editMode && siteData) {
-        const filteredData: Record<string, string> = {};
-        Object.entries(formData).forEach(([key, value]) => {
-          if (value && value.trim()) {
-            filteredData[key] = value;
-          }
-        });
+        const filteredData = buildPayload();
         await api.sites.update(siteData.id, filteredData, imageFiles.agentPhoto);
         addToast({
           type: 'success',
@@ -176,12 +216,7 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
         });
         router.push('/dashboard');
       } else {
-        const filteredData: Record<string, string> = {};
-        Object.entries(formData).forEach(([key, value]) => {
-          if (value && value.trim()) {
-            filteredData[key] = value;
-          }
-        });
+        const filteredData = buildPayload();
 
         await api.sites.create(template.id, template.name, filteredData, imageFiles.agentPhoto);
 
@@ -353,6 +388,53 @@ export default function DetailsForm({ template, editMode = false, siteData }: De
             <div className="grid sm:grid-cols-2 gap-4">
               {currentFields.map(renderField)}
             </div>
+
+            {/* CUSTOM FIELDS */}
+            {step === steps.length - 1 && (
+              <div className="mt-6 pt-6 border-t border-zinc-800">
+                <div className="flex justify-between items-center mb-3">
+                  <div>
+                    <h3 className="text-sm font-medium text-white">Custom Fields</h3>
+                    <p className="text-xs text-zinc-500">Add any extra details you want shown</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    onClick={addCustomField}
+                    className="text-indigo-400 hover:text-indigo-300"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Field
+                  </Button>
+                </div>
+
+                {customFields.length > 0 && (
+                  <div className="space-y-2">
+                    {customFields.map(f => (
+                      <div key={f.id} className="grid sm:grid-cols-[1fr_1fr_auto] gap-2 items-start">
+                        <Input
+                          placeholder="Field name (e.g. Award)"
+                          value={f.label}
+                          onChange={e => updateCustomField(f.id, { label: e.target.value })}
+                        />
+                        <Input
+                          placeholder="Value"
+                          value={f.value}
+                          onChange={e => updateCustomField(f.id, { value: e.target.value })}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeCustomField(f.id)}
+                          className="h-10 w-10 flex items-center justify-center text-zinc-500 hover:text-red-400 border border-zinc-700 rounded-md"
+                          aria-label="Remove field"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* ACTION */}
             <div className="flex justify-between mt-4 sm:mt-6 pt-4 border-t border-zinc-800 gap-3">
