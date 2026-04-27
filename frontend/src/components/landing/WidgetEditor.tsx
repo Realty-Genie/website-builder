@@ -314,7 +314,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                     value={newImageUrl}
                     onChange={(e) => setNewImageUrl(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") confirmImageChange(widget.id); }}
-                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                     placeholder="Paste image URL..."
                   />
                   <button
@@ -336,7 +336,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.alt}
                   onChange={(e) => updateWidget(widget.id, { alt: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-500 outline-none"
+                  className="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs text-zinc-900 outline-none"
                   placeholder="Alt text for accessibility..."
                 />
               </div>
@@ -379,7 +379,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.title}
                   onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-semibold outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-semibold text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -389,7 +389,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   onChange={(e) => updateWidget(widget.id, { description: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
                   rows={2}
-                  className="w-full resize-none rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full resize-none rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -398,7 +398,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.buttonLabel}
                   onChange={(e) => updateWidget(widget.id, { buttonLabel: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -407,7 +407,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.disclaimer}
                   onChange={(e) => updateWidget(widget.id, { disclaimer: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
 
@@ -456,21 +456,21 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                               onChange={(e) => patchField({ label: e.target.value })}
                               onClick={(e) => e.stopPropagation()}
                               placeholder="Label"
-                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-900 outline-none focus:border-sky-400"
                             />
                             <input
                               value={field.placeholder ?? ""}
                               onChange={(e) => patchField({ placeholder: e.target.value })}
                               onClick={(e) => e.stopPropagation()}
                               placeholder="Placeholder (optional)"
-                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                              className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-900 outline-none focus:border-sky-400"
                             />
                             <div className="flex items-center gap-2">
                               <select
                                 value={field.type}
                                 onChange={(e) => patchField({ type: e.target.value as LeadFormFieldType })}
                                 onClick={(e) => e.stopPropagation()}
-                                className="rounded border border-zinc-200 bg-white px-2 py-1 text-[11px] outline-none focus:border-sky-400"
+                                className="rounded border border-zinc-200 bg-white px-2 py-1 text-[11px] text-zinc-900 outline-none focus:border-sky-400"
                               >
                                 <option value="text">Text</option>
                                 <option value="email">Email</option>
@@ -567,14 +567,14 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                 value={widget.data.title}
                 onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-semibold outline-none focus:border-sky-400"
+                className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-semibold text-zinc-900 outline-none focus:border-sky-400"
                 placeholder="Map title..."
               />
               <input
                 value={widget.data.address}
                 onChange={(e) => updateWidget(widget.id, { address: e.target.value })}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 placeholder="Address..."
               />
             </div>
@@ -618,7 +618,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                         setNewImageUrl("");
                       }
                     }}
-                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                    className="flex-1 rounded-md border border-zinc-300 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                     placeholder="Paste image URL..."
                   />
                   <button
@@ -645,7 +645,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.tagline}
                   onChange={(e) => updateWidget(widget.id, { tagline: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                   placeholder="e.g. TOP VANCOUVER REALTOR®"
                 />
               </div>
@@ -655,7 +655,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.title}
                   onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -664,7 +664,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.subtitle}
                   onChange={(e) => updateWidget(widget.id, { subtitle: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -673,7 +673,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.ctaText}
                   onChange={(e) => updateWidget(widget.id, { ctaText: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div className="flex items-center gap-4">
@@ -734,14 +734,14 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                     value={widget.data.name}
                     onChange={(e) => updateWidget(widget.id, { name: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold text-zinc-900 outline-none focus:border-sky-400"
                     placeholder="Agent name..."
                   />
                   <input
                     value={widget.data.title}
                     onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
                     onClick={(e) => e.stopPropagation()}
-                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                    className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                     placeholder="Designation / title..."
                   />
                 </div>
@@ -753,7 +753,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   onChange={(e) => updateWidget(widget.id, { bio: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
                   rows={3}
-                  className="w-full resize-y rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full resize-y rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div>
@@ -762,7 +762,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.ctaText}
                   onChange={(e) => updateWidget(widget.id, { ctaText: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div className="flex gap-3">
@@ -830,7 +830,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                         updateWidget(widget.id, { items: updated });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-sm font-bold outline-none focus:border-sky-400"
+                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-sm font-bold text-zinc-900 outline-none focus:border-sky-400"
                       placeholder="500+"
                     />
                     <input
@@ -841,7 +841,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                         updateWidget(widget.id, { items: updated });
                       }}
                       onClick={(e) => e.stopPropagation()}
-                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] outline-none focus:border-sky-400"
+                      className="w-full rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] text-zinc-900 outline-none focus:border-sky-400"
                       placeholder="Homes Sold"
                     />
                   </div>
@@ -860,7 +860,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   value={widget.data.title}
                   onChange={(e) => updateWidget(widget.id, { title: e.target.value })}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold outline-none focus:border-sky-400"
+                  className="w-full rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-sm font-bold text-zinc-900 outline-none focus:border-sky-400"
                 />
               </div>
               <div className="flex gap-3">
@@ -898,7 +898,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                       }}
                       onClick={(e) => e.stopPropagation()}
                       rows={2}
-                      className="w-full resize-none rounded border border-zinc-200 bg-white px-2 py-1 text-xs outline-none focus:border-sky-400"
+                      className="w-full resize-none rounded border border-zinc-200 bg-white px-2 py-1 text-xs text-zinc-900 outline-none focus:border-sky-400"
                       placeholder="Quote text..."
                     />
                     <div className="flex gap-2">
@@ -910,7 +910,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                           updateWidget(widget.id, { items: updated });
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] font-semibold outline-none focus:border-sky-400"
+                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] font-semibold text-zinc-900 outline-none focus:border-sky-400"
                         placeholder="Author name"
                       />
                       <input
@@ -921,7 +921,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                           updateWidget(widget.id, { items: updated });
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] outline-none focus:border-sky-400"
+                        className="flex-1 rounded border border-zinc-200 bg-white px-2 py-1 text-[10px] text-zinc-900 outline-none focus:border-sky-400"
                         placeholder="City, State"
                       />
                     </div>
