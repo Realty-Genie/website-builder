@@ -39,6 +39,17 @@ type LeadFormProps = {
 
 const RESERVED_LEAD_IDS = new Set(["name", "email", "phone_country_code", "phone", "city"]);
 
+// Converts a human label like "Job Status" / "Years-of-Experience!" into a
+// snake_case key suitable for the extra_fields map sent to the lead API.
+function toSnakeCase(input: string): string {
+  return input
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+    .replace(/[^a-zA-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .toLowerCase();
+}
+
 function LeadForm({
   title,
   description,
@@ -72,8 +83,15 @@ function LeadForm({
       activeFields.forEach((f) => {
         const val = (values[f.id] ?? "").trim();
         if (!val) return;
-        if (RESERVED_LEAD_IDS.has(f.id)) lead[f.id] = val;
-        else extra_fields[f.id] = val;
+        if (RESERVED_LEAD_IDS.has(f.id)) {
+          lead[f.id] = val;
+        } else {
+          // Custom field added via the editor — key it by the snake_case label
+          // so the backend sees a meaningful name (e.g. "Job Status" → "job_status")
+          // instead of the internal random id ("field_abc123").
+          const key = toSnakeCase(f.label) || f.id;
+          extra_fields[key] = val;
+        }
       });
 
       // Merge country code into phone, drop phone_country_code key
