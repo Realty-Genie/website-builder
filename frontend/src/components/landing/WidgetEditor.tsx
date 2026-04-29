@@ -422,7 +422,7 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const existing: LeadFormField[] = widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS;
+                      const existing: LeadFormField[] = (widget.data.fields && widget.data.fields.length > 0 ? widget.data.fields : DEFAULT_LEAD_FORM_FIELDS);
                       const nextId = `field_${Date.now().toString(36)}`;
                       updateWidget(widget.id, {
                         fields: [
@@ -437,8 +437,8 @@ export default function WidgetEditor({ widgets, onChange }: Props) {
                   </button>
                 </div>
                 <div className="space-y-2">
-                  {(widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS).map((field: LeadFormField, idx: number) => {
-                    const fields: LeadFormField[] = widget.data.fields ?? DEFAULT_LEAD_FORM_FIELDS;
+                  {((widget.data.fields && widget.data.fields.length > 0 ? widget.data.fields : DEFAULT_LEAD_FORM_FIELDS)).map((field: LeadFormField, idx: number) => {
+                    const fields: LeadFormField[] = (widget.data.fields && widget.data.fields.length > 0 ? widget.data.fields : DEFAULT_LEAD_FORM_FIELDS);
                     const patchField = (patch: Partial<LeadFormField>) => {
                       const next = fields.map((f, i) => (i === idx ? { ...f, ...patch } : f));
                       updateWidget(widget.id, { fields: next });

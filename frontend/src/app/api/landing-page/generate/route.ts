@@ -94,7 +94,24 @@ image: { imageUrl: "https://images.unsplash.com/...", alt: string, aspect: "wide
 gallery: { images: ["url1", "url2", "url3"], sectionBg?: "#hex" }
 slideshow: { images: ["url1", "url2", "url3"], title: string }
 map: { title: string, address: string, embedUrl: "https://www.google.com/maps?q=City+Name&output=embed" }
-leadForm: { title: string, description: string, buttonLabel: string, disclaimer: string, backgroundColor: "#hex", textColor: "#hex", buttonColor: "#hex", buttonTextColor: "#hex" }
+leadForm: {
+  title: string,
+  description: string,
+  buttonLabel: string,
+  disclaimer: string,
+  backgroundColor: "#hex",
+  textColor: "#hex",
+  buttonColor: "#hex",
+  buttonTextColor: "#hex",
+  // ALWAYS include this exact fields array on every leadForm — name / email / phone / city
+  fields: [
+    { id: "name", label: "Full Name", type: "text", placeholder: "Your Name", required: true },
+    { id: "email", label: "Email", type: "email", placeholder: "you@email.com", required: true },
+    { id: "phone_country_code", label: "Country Code", type: "text", placeholder: "+1", required: true },
+    { id: "phone", label: "Phone Number", type: "tel", placeholder: "555 000-0000", required: true },
+    { id: "city", label: "City", type: "text", placeholder: "Your City", required: false }
+  ]
+}
 divider: { color: "#hex" }
 spacer: { height: 48 }
 embed: { title: string, html: string }

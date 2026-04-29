@@ -70,7 +70,9 @@ export type LeadFormField = {
 export const DEFAULT_LEAD_FORM_FIELDS: LeadFormField[] = [
   { id: "name", label: "Full Name", type: "text", placeholder: "Your Name", required: true },
   { id: "email", label: "Email", type: "email", placeholder: "you@email.com", required: true },
-  { id: "phone", label: "Phone", type: "tel", placeholder: "+1 (555) 000-0000", required: true },
+  { id: "phone_country_code", label: "Country Code", type: "text", placeholder: "+1", required: true },
+  { id: "phone", label: "Phone Number", type: "tel", placeholder: "555 000-0000", required: true },
+  { id: "city", label: "City", type: "text", placeholder: "Your City", required: false },
 ];
 
 export type LeadFormWidgetData = {

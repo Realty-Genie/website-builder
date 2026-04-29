@@ -1,7 +1,7 @@
 // Pre-built starter templates users can pick from when creating a new landing page.
 // Each template is a ready-made widget array. Users can then refine with AI or edit manually.
 
-import type { CanvasWidget } from "@/types/widgets";
+import { DEFAULT_LEAD_FORM_FIELDS, type CanvasWidget } from "@/types/widgets";
 
 function uid(prefix: string) {
   return `${prefix}-${Math.random().toString(36).slice(2, 8)}`;
@@ -93,6 +93,7 @@ const luxuryListing: CanvasWidget[] = [
       textColor: "#ffffff",
       buttonColor: "#c9a84c",
       buttonTextColor: "#1a1a2e",
+      fields: DEFAULT_LEAD_FORM_FIELDS.map((f) => ({ ...f })),
     },
   },
 ];
@@ -199,6 +200,7 @@ const firstTimeBuyer: CanvasWidget[] = [
       textColor: "#ffffff",
       buttonColor: "#f6e05e",
       buttonTextColor: "#1a202c",
+      fields: DEFAULT_LEAD_FORM_FIELDS.map((f) => ({ ...f })),
     },
   },
 ];
@@ -314,12 +316,32 @@ const topAgent: CanvasWidget[] = [
       textColor: "#ffffff",
       buttonColor: "#48bb78",
       buttonTextColor: "#ffffff",
+      fields: DEFAULT_LEAD_FORM_FIELDS.map((f) => ({ ...f })),
     },
   },
 ];
 
 // ─── Template 4: Blank ────────────────────────────────────────────────────────
-const blank: CanvasWidget[] = [];
+// Not truly empty — ships with a default lead form so every new page captures
+// name / email / phone / city out of the box.
+const blank: CanvasWidget[] = [
+  {
+    id: uid("leadForm"),
+    type: "leadForm",
+    label: "Lead Form",
+    data: {
+      title: "Get in Touch",
+      description: "Leave your details and we'll be in touch shortly.",
+      buttonLabel: "Send",
+      disclaimer: "By submitting, you agree to be contacted.",
+      backgroundColor: "#0f172a",
+      textColor: "#ffffff",
+      buttonColor: "#2f8fe5",
+      buttonTextColor: "#ffffff",
+      fields: DEFAULT_LEAD_FORM_FIELDS.map((f) => ({ ...f })),
+    },
+  },
+];
 
 // ─── Exported template list ───────────────────────────────────────────────────
 export type LandingTemplate = {

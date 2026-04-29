@@ -270,10 +270,9 @@ ${colItems.map((inner) => widgetMarkup(inner, true)).join("\n")}
 export function generateCodeString(widgets: CanvasWidget[], realtorId: string): string {
   const sections = widgets.map((w) => widgetMarkup(w)).join("\n");
   const REALTOR_ID = realtorId || "anonymous";
-  const CRM_API_URL =
-    process.env.NEXT_PUBLIC_CRM_URL || "https://realty-crm-web.vercel.app";
+  const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
-  return `import { useState, type ChangeEvent, type FormEvent } from 'react';
+  return `import { useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 
 type LeadFormProps = {
   title: string;
@@ -291,41 +290,53 @@ function LeadForm({
   title, description, disclaimer, buttonLabel,
   backgroundColor, textColor, buttonColor, buttonTextColor, isNested
 }: LeadFormProps) {
-  const [formState, setFormState] = useState({ name: '', email: '', phone: '' });
+  const [fields, setFields] = useState({ name: '', email: '', phone_country_code: '', phone: '', city: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [submitMessage, setSubmitMessage] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
 
-  const handleChange = (field: keyof typeof formState) => (event: ChangeEvent<HTMLInputElement>) => {
-    setFormState((current) => ({ ...current, [field]: event.target.value }));
-  };
+  useEffect(() => {
+    (window as any).__onTurnstileVerify = (token: string) => setTurnstileToken(token);
+    (window as any).__onTurnstileExpire = () => setTurnstileToken(null);
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
+
+  const set = (field: keyof typeof fields) => (e: ChangeEvent<HTMLInputElement>) =>
+    setFields(cur => ({ ...cur, [field]: e.target.value }));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!turnstileToken) return;
     setIsSubmitting(true);
     setSubmitStatus('idle');
-
     try {
-      const response = await fetch('${CRM_API_URL}/api/v1/add/lead', {
+      const phone = \`\${fields.phone_country_code} \${fields.phone}\`.trim();
+      const response = await fetch('/api/proxy/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          realtorUserId: '${REALTOR_ID}',
-          leadType: 'contact',
-          sourceTemplate: 'flagship-v1',
+          turnstileToken,
+          realtorId: '${REALTOR_ID}',
+          lead: { name: fields.name, email: fields.email, phone, city: fields.city },
+          extra_fields: {},
           sourcePage: typeof window !== 'undefined' ? window.location.pathname : '/',
-          lead: { name: formState.name, email: formState.email, phone: formState.phone },
-          context: {
-            userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
-            referrer: typeof document !== 'undefined' ? document.referrer : ''
-          }
         }),
       });
-
-      if (!response.ok) throw new Error('Failed to submit. Please try again.');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(err.error ?? 'Failed to submit. Please try again.');
+      }
       setSubmitStatus('success');
       setSubmitMessage('Thanks! Your consultation request has been received.');
-      setFormState({ name: '', email: '', phone: '' });
+      setFields({ name: '', email: '', phone_country_code: '', phone: '', city: '' });
+      setTurnstileToken(null);
     } catch (error) {
       setSubmitStatus('error');
       setSubmitMessage(error instanceof Error ? error.message : 'Something went wrong.');
@@ -333,6 +344,8 @@ function LeadForm({
       setIsSubmitting(false);
     }
   };
+
+  const input = "w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-sky-500 text-slate-900";
 
   return (
     <section className={\`\${isNested ? 'py-2' : 'px-6 py-16 sm:px-12 md:py-24'}\`}>
@@ -342,36 +355,54 @@ function LeadForm({
       >
         <div className="flex flex-col justify-center space-y-6">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.24em] opacity-60">Lead capture</p>
+            <p className="text-sm font-bold uppercase tracking-[0.24em] opacity-60">Get Started</p>
             <h2 className={\`mt-4 \${isNested ? 'text-2xl' : 'text-4xl'} font-bold tracking-tight leading-tight\`}>{title}</h2>
           </div>
           <p className="text-lg leading-relaxed opacity-80">{description}</p>
-          <div className="pt-4 border-t border-current/10">
-            <p className="text-xs font-medium opacity-50 uppercase tracking-widest">Powered by RealtyGenie CRM</p>
-          </div>
         </div>
         <div className="rounded-xl bg-white p-8 text-slate-900 shadow-inner">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className={\`grid gap-5 \${isNested ? 'grid-cols-1' : 'sm:grid-cols-2'}\`}>
-              <div className={\`\${isNested ? '' : 'sm:col-span-2'}\`}>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Full Name</label>
-                <input className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-sky-500 text-slate-900" placeholder="Your Name" required value={formState.name} onChange={handleChange('name')} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email</label>
-                <input type="email" className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-sky-500 text-slate-900" placeholder="email@example.com" required value={formState.email} onChange={handleChange('email')} />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone</label>
-                <input className="w-full rounded-lg border border-slate-100 bg-slate-50 px-4 py-3.5 text-sm outline-none focus:border-sky-500 text-slate-900" placeholder="+1 (555) 000-0000" required value={formState.phone} onChange={handleChange('phone')} />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Full Name</label>
+              <input className={input} placeholder="Your Name" required value={fields.name} onChange={set('name')} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Email</label>
+              <input type="email" className={input} placeholder="you@email.com" required value={fields.email} onChange={set('email')} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Phone Number</label>
+              <div className="flex gap-2">
+                <input
+                  className="w-20 shrink-0 rounded-lg border border-slate-100 bg-slate-50 px-3 py-3.5 text-center text-sm outline-none focus:border-sky-500 text-slate-900"
+                  placeholder="+1" maxLength={6} required
+                  value={fields.phone_country_code} onChange={set('phone_country_code')}
+                />
+                <input className={input} type="tel" placeholder="555 000-0000" required value={fields.phone} onChange={set('phone')} />
               </div>
             </div>
-            <button type="submit" disabled={isSubmitting} className="mt-4 flex w-full items-center justify-center rounded-lg px-6 py-4 text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:opacity-50" style={{ backgroundColor: buttonColor, color: buttonTextColor }}>
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">City</label>
+              <input className={input} placeholder="Your City" value={fields.city} onChange={set('city')} />
+            </div>
+            <div
+              ref={turnstileRef}
+              className="cf-turnstile mt-2"
+              data-sitekey="${TURNSTILE_SITE_KEY}"
+              data-callback="__onTurnstileVerify"
+              data-expired-callback="__onTurnstileExpire"
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting || !turnstileToken}
+              className="mt-2 flex w-full items-center justify-center rounded-lg px-6 py-4 text-sm font-bold shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:opacity-50"
+              style={{ backgroundColor: buttonColor, color: buttonTextColor }}
+            >
               {isSubmitting ? 'Sending...' : buttonLabel}
             </button>
             {submitStatus === 'success' && <p className="text-xs font-semibold text-emerald-500 text-center">{submitMessage}</p>}
             {submitStatus === 'error' && <p className="text-xs font-semibold text-rose-500 text-center">{submitMessage}</p>}
-            <p className="mt-6 text-[11px] leading-relaxed text-slate-400 text-center">{disclaimer}</p>
+            <p className="mt-4 text-[11px] leading-relaxed text-slate-400 text-center">{disclaimer}</p>
           </form>
         </div>
       </div>

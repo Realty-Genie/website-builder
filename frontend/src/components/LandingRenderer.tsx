@@ -1,7 +1,25 @@
 "use client";
 
 import React, { useState, type FormEvent } from "react";
+import Turnstile from "react-turnstile";
 import { DEFAULT_LEAD_FORM_FIELDS, type LeadFormField } from "@/types/widgets";
+
+// Cloudflare's documented "always passes, visible" test keys.
+// Used as a fallback on localhost so the widget renders during local dev
+// even when the production site key isn't allowlisted for the dev hostname.
+// https://developers.cloudflare.com/turnstile/troubleshooting/testing/
+const TURNSTILE_DEV_SITEKEY = "1x00000000000000000000AA";
+
+function resolveTurnstileSiteKey(): string {
+  const configured = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    if (host === "localhost" || host.endsWith(".localhost") || host === "127.0.0.1") {
+      return TURNSTILE_DEV_SITEKEY;
+    }
+  }
+  return configured ?? TURNSTILE_DEV_SITEKEY;
+}
 
 // ─── Lead Form ───────────────────────────────────────────────────────────────
 // Handles configurable field capture and sends to the CRM API.
@@ -19,7 +37,7 @@ type LeadFormProps = {
   fields?: LeadFormField[];
 };
 
-const RESERVED_LEAD_IDS = new Set(["name", "email", "phone"]);
+const RESERVED_LEAD_IDS = new Set(["name", "email", "phone_country_code", "phone", "city"]);
 
 function LeadForm({
   title,
@@ -39,45 +57,50 @@ function LeadForm({
   );
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
-
-  const CRM_URL = process.env.NEXT_PUBLIC_CRM_URL || "https://realty-crm-web.vercel.app";
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   const update = (id: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setValues((v) => ({ ...v, [id]: e.target.value }));
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!turnstileToken) return;
     setStatus("loading");
     try {
       const lead: Record<string, string> = {};
-      const customFields: Record<string, string> = {};
+      const extra_fields: Record<string, string> = {};
       activeFields.forEach((f) => {
         const val = (values[f.id] ?? "").trim();
         if (!val) return;
         if (RESERVED_LEAD_IDS.has(f.id)) lead[f.id] = val;
-        else customFields[f.id] = val;
+        else extra_fields[f.id] = val;
       });
 
-      const res = await fetch(`${CRM_URL}/api/v1/add/lead`, {
+      // Merge country code into phone, drop phone_country_code key
+      if (lead.phone_country_code || lead.phone) {
+        lead.phone = `${lead.phone_country_code ?? ""} ${lead.phone ?? ""}`.trim();
+        delete lead.phone_country_code;
+      }
+
+      const res = await fetch("/api/proxy/lead", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          realtorUserId: realtorId,
-          leadType: "contact",
-          sourceTemplate: "landing-v2",
-          sourcePage: typeof window !== "undefined" ? window.location.pathname : "/",
+          turnstileToken,
+          realtorId,
           lead,
-          context: {
-            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "unknown",
-            referrer: typeof document !== "undefined" ? document.referrer : "",
-            customFields,
-          },
+          extra_fields,
+          sourcePage: typeof window !== "undefined" ? window.location.pathname : "/",
         }),
       });
-      if (!res.ok) throw new Error("Submission failed. Please try again.");
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? "Submission failed. Please try again.");
+      }
       setStatus("success");
       setMessage("Thanks! We'll be in touch shortly.");
       setValues(Object.fromEntries(activeFields.map((f) => [f.id, ""])));
+      setTurnstileToken(null);
     } catch (err) {
       setStatus("error");
       setMessage(err instanceof Error ? err.message : "Something went wrong.");
@@ -86,6 +109,72 @@ function LeadForm({
 
   const inputClass =
     "w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors";
+
+  // Detect if we have a phone_country_code + phone pair to render as one row
+  const hasPhoneCountryCode = activeFields.some((f) => f.id === "phone_country_code");
+
+  function renderField(f: LeadFormField) {
+    // Skip phone_country_code standalone — rendered inside phone row
+    if (f.id === "phone_country_code") return null;
+
+    // Phone field: if country code exists, render as a combined row
+    if (f.id === "phone" && hasPhoneCountryCode) {
+      const ccField = activeFields.find((x) => x.id === "phone_country_code")!;
+      return (
+        <div key="phone-row">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Phone Number
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              required={ccField.required}
+              value={values["phone_country_code"] ?? ""}
+              onChange={update("phone_country_code")}
+              placeholder={ccField.placeholder ?? "+1"}
+              maxLength={6}
+              className="w-20 shrink-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3 text-center text-sm text-slate-900 outline-none focus:border-sky-500 transition-colors"
+            />
+            <input
+              type="tel"
+              required={f.required}
+              value={values["phone"] ?? ""}
+              onChange={update("phone")}
+              placeholder={f.placeholder}
+              className={inputClass}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div key={f.id}>
+        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
+          {f.label}
+        </label>
+        {f.type === "textarea" ? (
+          <textarea
+            required={f.required}
+            value={values[f.id] ?? ""}
+            onChange={update(f.id)}
+            placeholder={f.placeholder}
+            rows={3}
+            className={inputClass + " resize-none"}
+          />
+        ) : (
+          <input
+            type={f.type}
+            required={f.required}
+            value={values[f.id] ?? ""}
+            onChange={update(f.id)}
+            placeholder={f.placeholder}
+            className={inputClass}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <section id="contact" style={{ backgroundColor }}>
@@ -100,35 +189,17 @@ function LeadForm({
           {/* Right: form */}
           <div className="rounded-xl bg-white p-8 text-slate-900 shadow-2xl">
             <form onSubmit={handleSubmit} className="space-y-4">
-              {activeFields.map((f) => (
-                <div key={f.id}>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {f.label}
-                  </label>
-                  {f.type === "textarea" ? (
-                    <textarea
-                      required={f.required}
-                      value={values[f.id] ?? ""}
-                      onChange={update(f.id)}
-                      placeholder={f.placeholder}
-                      rows={3}
-                      className={inputClass + " resize-none"}
-                    />
-                  ) : (
-                    <input
-                      type={f.type}
-                      required={f.required}
-                      value={values[f.id] ?? ""}
-                      onChange={update(f.id)}
-                      placeholder={f.placeholder}
-                      className={inputClass}
-                    />
-                  )}
-                </div>
-              ))}
+              {activeFields.map((f) => renderField(f))}
+              <Turnstile
+                sitekey={resolveTurnstileSiteKey()}
+                onVerify={(token) => setTurnstileToken(token)}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => setTurnstileToken(null)}
+                className="mt-2"
+              />
               <button
                 type="submit"
-                disabled={status === "loading"}
+                disabled={status === "loading" || !turnstileToken}
                 className="mt-2 w-full rounded-lg px-6 py-4 text-sm font-bold uppercase tracking-wider shadow-lg transition-all hover:-translate-y-0.5 hover:shadow-xl active:scale-95 disabled:opacity-50"
                 style={{ backgroundColor: buttonColor, color: buttonTextColor }}
               >
