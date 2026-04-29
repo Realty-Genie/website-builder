@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const RESERVED_LEAD_IDS = new Set(["name", "email", "phone", "city"]);
-
 // When the client uses the Cloudflare-documented dev sitekey, pair it with the
 // matching always-pass secret so /api/proxy/lead actually accepts the submission
 // during local development. https://developers.cloudflare.com/turnstile/troubleshooting/testing/
@@ -24,10 +22,27 @@ async function verifyTurnstile(token: string, ip: string | null, host: string | 
   return data.success === true;
 }
 
+function resolveSiteName(siteName: unknown, host: string | null): string {
+  if (typeof siteName === "string" && siteName.trim()) {
+    return siteName.trim();
+  }
+
+  if (!host) {
+    return "landing-v2";
+  }
+
+  const normalizedHost = host.split(":")[0].trim().toLowerCase();
+  if (!normalizedHost || normalizedHost === "localhost" || normalizedHost === "127.0.0.1") {
+    return "landing-v2";
+  }
+
+  return `https://${normalizedHost}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { turnstileToken, realtorId, lead, extra_fields, sourcePage } = body;
+    const { turnstileToken, realtorId, lead, extra_fields, siteName } = body;
 
     if (!turnstileToken || typeof turnstileToken !== "string") {
       return NextResponse.json({ success: false, error: "Missing bot protection token" }, { status: 400 });
@@ -42,6 +57,7 @@ export async function POST(request: NextRequest) {
       request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
       null;
     const host = request.headers.get("host");
+    const resolvedSiteName = resolveSiteName(siteName, host);
 
     const valid = await verifyTurnstile(turnstileToken, ip, host);
     if (!valid) {
@@ -50,8 +66,7 @@ export async function POST(request: NextRequest) {
 
     const leadPayload = {
       realtorId,
-      sourcePage: sourcePage ?? "/",
-      sourceTemplate: "landing-v2",
+      siteName: resolvedSiteName,
       lead: {
         name: lead.name ?? "",
         email: lead.email ?? "",

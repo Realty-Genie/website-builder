@@ -3,7 +3,7 @@ import { LandingRenderer } from "@/components/LandingRenderer";
 import { getSubdomain } from "@/lib/getSubdomain";
 import { LandingPageDomain } from "@/types/domain";
 
-export default async function ({
+export default async function LandingSubdomainPage({
   params,
 }: {
   params: Promise<{ subdomain: string }>;
@@ -21,6 +21,7 @@ export default async function ({
           <LandingRenderer
             widgets={subdomainData.widgets}
             realtorId={subdomainData.realtorId}
+            siteName={subdomainData.name || subdomainData.subdomain}
           />
         ) : (
           <div className="flex h-screen items-center justify-center">

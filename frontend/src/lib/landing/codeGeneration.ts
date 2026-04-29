@@ -286,6 +286,11 @@ type LeadFormProps = {
   isNested?: boolean;
 };
 
+function resolveLeadSiteName(siteName?: string): string {
+  if (typeof window === 'undefined') return siteName?.trim() || 'landing-v2';
+  return window.location.origin.trim() || siteName?.trim() || 'landing-v2';
+}
+
 function LeadForm({
   title, description, disclaimer, buttonLabel,
   backgroundColor, textColor, buttonColor, buttonTextColor, isNested
@@ -326,7 +331,7 @@ function LeadForm({
           realtorId: '${REALTOR_ID}',
           lead: { name: fields.name, email: fields.email, phone, city: fields.city },
           extra_fields: {},
-          sourcePage: typeof window !== 'undefined' ? window.location.pathname : '/',
+          siteName: resolveLeadSiteName(),
         }),
       });
       if (!response.ok) {

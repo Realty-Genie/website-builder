@@ -4,6 +4,7 @@
 export type LandingPageDomain = {
   realtorId: string;
   subdomain: string;
+  name?: string;
   code: string;
   widgets?: any[];
 };

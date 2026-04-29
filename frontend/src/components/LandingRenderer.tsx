@@ -34,6 +34,7 @@ type LeadFormProps = {
   buttonColor: string;
   buttonTextColor: string;
   realtorId: string;
+  siteName?: string;
   fields?: LeadFormField[];
 };
 
@@ -50,6 +51,14 @@ function toSnakeCase(input: string): string {
     .toLowerCase();
 }
 
+function resolveLeadSiteName(siteName?: string): string {
+  if (typeof window === "undefined") {
+    return siteName?.trim() || "landing-v2";
+  }
+
+  return window.location.origin.trim() || siteName?.trim() || "landing-v2";
+}
+
 function LeadForm({
   title,
   description,
@@ -60,6 +69,7 @@ function LeadForm({
   buttonColor,
   buttonTextColor,
   realtorId,
+  siteName,
   fields,
 }: LeadFormProps) {
   const activeFields = fields && fields.length > 0 ? fields : DEFAULT_LEAD_FORM_FIELDS;
@@ -108,7 +118,7 @@ function LeadForm({
           realtorId,
           lead,
           extra_fields,
-          sourcePage: typeof window !== "undefined" ? window.location.pathname : "/",
+          siteName: resolveLeadSiteName(siteName),
         }),
       });
       if (!res.ok) {
@@ -257,7 +267,15 @@ function aspectClass(a: string) {
 
 // ─── Main Renderer ────────────────────────────────────────────────────────────
 
-export function LandingRenderer({ widgets, realtorId }: { widgets: any[]; realtorId: string }) {
+export function LandingRenderer({
+  widgets,
+  realtorId,
+  siteName,
+}: {
+  widgets: any[];
+  realtorId: string;
+  siteName?: string;
+}) {
   function renderWidget(widget: any): React.ReactNode {
     switch (widget.type) {
 
@@ -389,6 +407,7 @@ export function LandingRenderer({ widgets, realtorId }: { widgets: any[]; realto
             buttonTextColor={widget.data.buttonTextColor}
             fields={widget.data.fields}
             realtorId={realtorId}
+            siteName={siteName}
           />
         );
 
