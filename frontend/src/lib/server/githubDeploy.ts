@@ -384,6 +384,8 @@ function generateRealEstateHTML(details: Record<string, string>): string {
       .footer-grid { grid-template-columns: 1fr 1fr; gap: 28px; } 
       .footer-legal { text-align: left; } 
       .hero { min-height: 100dvh; display: flex; align-items: center; }
+      .hero-bg { background-image: url("${agentPhotoUrl}"); background-position: center center; opacity: 0.75; }  // this need to use the agent photo of its repo opencode fix this line to take the agent photo from the repo.
+      .hero-overlay { background: linear-gradient(180deg, var(--dark) 0%, rgba(10,10,15,0.7) 50%, var(--dark) 100%); }
       .hero-inner { gap: 30px; padding: 50px 0 40px; }
       .hero h1 { font-size: clamp(32px, 8vw, 44px); }
       .hero-desc { font-size: 15px; margin-bottom: 28px; }
@@ -396,7 +398,8 @@ function generateRealEstateHTML(details: Record<string, string>): string {
       .hero-badge { padding: 6px 12px; font-size: 11px; margin-bottom: 20px; }
       .hero-divider { margin: 20px 0 20px; }
       .hero-stats { display: none !important; }
-      .hero-mobile-agent { display: flex; }
+      .hero-mobile-agent { display: none !important; }
+      .hero-agent-card { display: none !important; }
     }
     @media (min-width: 769px) and (max-width: 1024px) {
       .hero-inner { grid-template-columns: 1fr 300px; gap: 40px; }
@@ -473,7 +476,7 @@ function generateRealEstateHTML(details: Record<string, string>): string {
     }
     @media (max-width: 480px) {
       .container { padding: 0 16px; }
-      .hero { min-height: 100dvh; padding: 80px 0 40px; }
+      .hero { min-height: 75dvh; padding: 80px 0 40px; }
       .hero-inner { padding: 30px 0 30px; }
       .btn-primary-hero, .btn-outline-hero { padding: 12px 16px; font-size: 12px; flex: 1; justify-content: center; min-width: 140px; }
       .hero-actions { gap: 8px; justify-content: center; }
